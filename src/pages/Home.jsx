@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
@@ -22,6 +23,19 @@ const Home = () => {
     const [events, setEvents] = useState([]);
     const [timeLeft, setTimeLeft] = useState({});
     const { currentUser, userRole } = useAuth();
+    const navigate = useNavigate();
+
+    // Redirect if logged in - Only for Admin and Organizer
+    useEffect(() => {
+        if (currentUser) {
+            if (userRole === 'admin') {
+                navigate('/admin');
+            } else if (userRole === 'organizer') {
+                navigate('/organizer');
+            }
+            // Students/Participants can stay on Home page
+        }
+    }, [currentUser, userRole, navigate]);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -152,7 +166,7 @@ const Home = () => {
                                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-60' : 'opacity-0'}`}
                             />
                         ))}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-transparent backdrop-blur-[1px]"></div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-transparent backdrop-blur-[1px]"></div>
                     </div>
 
                     <div className="relative z-14 text-center px-4 max-w-6xl mx-auto w-full">
