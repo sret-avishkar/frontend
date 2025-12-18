@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import RegistrationModal from '../components/RegistrationModal';
 import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { DetailSkeleton } from '../components/Skeleton';
 
 
 const EventDetails = () => {
@@ -73,9 +74,7 @@ const EventDetails = () => {
     }, [id, currentUser, location.state, navigate]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center text-gray-800 bg-white">Loading...</div>
-        );
+        return <DetailSkeleton />;
     }
 
     if (!event) {

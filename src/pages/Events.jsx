@@ -4,6 +4,7 @@ import { Calendar, MapPin, ArrowRight, User, QrCode, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import QRCode from 'react-qr-code';
+import { CardSkeleton, Skeleton } from '../components/Skeleton';
 
 const Events = () => {
     const [events, setEvents] = useState([]);
