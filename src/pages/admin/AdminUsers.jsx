@@ -26,14 +26,17 @@ const AdminUsers = () => {
         }
     };
 
-    const handleApproveOrganizer = async (uid) => {
+    const handleToggleRole = async (user) => {
+        const newRole = user.role === 'organizer' ? 'participant' : 'organizer';
+        const action = user.role === 'organizer' ? 'Demoted' : 'Promoted';
+
         try {
-            await api.put(`/users/${uid}/role`, { role: 'organizer' });
-            toast.success("User approved as Organizer");
-            fetchUsers(); // Refresh list
+            await api.put(`/users/${user.uid}/role`, { role: newRole });
+            toast.success(`User ${action} successfully`);
+            fetchUsers();
         } catch (error) {
-            console.error("Failed to approve user", error);
-            toast.error("Failed to approve user");
+            console.error("Failed to update user role", error);
+            toast.error("Failed to update user role");
         }
     };
 
@@ -131,7 +134,7 @@ const AdminUsers = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         {user.role !== 'admin' && (
                                             <button
-                                                onClick={() => handleApproveOrganizer(user.uid)}
+                                                onClick={() => handleToggleRole(user)}
                                                 className="text-indigo-600 hover:text-indigo-900"
                                             >
                                                 {user.role === 'organizer' ? 'Demote to Participant' : 'Promote to Organizer'}

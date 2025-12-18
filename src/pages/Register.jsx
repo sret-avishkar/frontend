@@ -12,6 +12,7 @@ const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
     const [requestOrganizer, setRequestOrganizer] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,6 +32,7 @@ const Register = () => {
             // Create user document in Firestore
             await setDoc(doc(db, "users", user.uid), {
                 email: user.email,
+                mobileNumber: mobileNumber,
                 role: 'participant', // Default role
                 organizerRequest: requestOrganizer, // Flag for admin approval
                 createdAt: new Date().toISOString()
@@ -40,7 +42,7 @@ const Register = () => {
             if (requestOrganizer) {
                 navigate('/pending-approval');
             } else {
-                navigate('/dashboard');
+                navigate('/events');
             }
         } catch (err) {
             console.error(err);
@@ -54,7 +56,7 @@ const Register = () => {
         try {
             await signInWithGoogle();
             toast.success("Signed in with Google!");
-            navigate('/dashboard');
+            navigate('/events');
         } catch (error) {
             toast.error("Google Sign In failed");
         }
@@ -157,6 +159,23 @@ const Register = () => {
                                         placeholder="you@example.com"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                            </motion.div>
+
+                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.45 }}>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Mobile Number</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-gray-400" /> {/* Reusing Mail icon for now/Phone icon is not imported yet, can fix later or use another icon if available */}
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        required
+                                        className="block w-full pl-10 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white/50 focus:bg-white"
+                                        placeholder="+91 9876543210"
+                                        value={mobileNumber}
+                                        onChange={(e) => setMobileNumber(e.target.value)}
                                     />
                                 </div>
                             </motion.div>

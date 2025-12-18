@@ -50,14 +50,14 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                 </button>
 
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold mb-4">Register for {event.title}</h2>
-                    <p className="text-gray-600 mb-6">Please provide your contact details for venue coordination.</p>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-900">Register for {event.title}</h2>
+                    <p className="text-gray-700 mb-6">Please provide your contact details for venue coordination.</p>
 
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                            <label className="block text-sm font-medium text-gray-800 mb-1">Mobile Number</label>
                             <input
                                 type="tel"
                                 required

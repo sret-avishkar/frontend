@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +12,9 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from?.pathname || null;
+    const showModalOnReturn = location.state?.showModalOnReturn || false;
     const { signInWithGoogle } = useAuth();
 
     const handleEmailLogin = async (e) => {
@@ -27,10 +30,21 @@ const Login = () => {
 
             toast.success("Welcome back!");
 
-            if (userDoc.exists() && userDoc.data().role === 'admin') {
-                navigate('/admin');
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                if (role === 'admin') {
+                    navigate('/admin');
+                } else if (role === 'organizer') {
+                    navigate('/organizer');
+                } else {
+                    if (from) {
+                        navigate(from, { state: { showModalOnReturn } });
+                    } else {
+                        navigate('/events');
+                    }
+                }
             } else {
-                navigate('/dashboard');
+                navigate('/dashboard'); // Fallback if no user doc
             }
         } catch (err) {
             console.error(err);
@@ -42,9 +56,36 @@ const Login = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            await signInWithGoogle();
+            const result = await signInWithGoogle();
+            const user = result.user;
+
+            // Check role after Google Sign In
+            const { doc, getDoc, getFirestore } = await import('firebase/firestore');
+            const db = getFirestore();
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+
             toast.success("Signed in with Google!");
-            navigate('/dashboard');
+
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                if (role === 'admin') {
+                    navigate('/admin');
+                } else if (role === 'organizer') {
+                    navigate('/organizer');
+                } else {
+                    if (from) {
+                        navigate(from);
+                    } else {
+                        navigate('/events');
+                    }
+                }
+            } else {
+                if (from) {
+                    navigate(from);
+                } else {
+                    navigate('/events');
+                }
+            }
         } catch (error) {
             toast.error("Google Sign In failed");
         }

@@ -112,10 +112,15 @@ const Home = () => {
     const isRegistrationClosed = deadline && new Date() > deadline;
 
     const heroImages = [
-        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012&auto=format&fit=crop"
+        // "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop",
+        // "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
+        // "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2070&auto=format&fit=crop",
+        // "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012&auto=format&fit=crop"
+        "/assets/images/slideshow/inauguration.png",
+        "/assets/images/slideshow/coding-contest.png",
+        "/assets/images/slideshow/paper-presentation.png",
+        "/assets/images/slideshow/poster-presentation.png",
+        "/assets/images/slideshow/quiz.png"
     ];
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -129,9 +134,9 @@ const Home = () => {
 
     return (
         <>
-            <div className="min-h-screen font-sans selection:bg-blue-200 selection:text-blue-900 text-gray-100">
+            <div className="min-h-screen font-sans selection:bg-white selection:text-blue-900 text-gray-100 bg-white/50">
                 {/* Hero Section */}
-                <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+                <section className="relative h-[90vh] flex items-center justify-center bg-black overflow-hidden">
                     {/* ... existing hero content ... */}
                     {/* I will keep the hero image but maybe adjust opacity to blend with new background? 
                         Actually, the user asked for "crazy backgrounds". 
@@ -251,7 +256,7 @@ const Home = () => {
                 </div>
 
                 {/* Footer */}
-                <footer className="bg-black/40 backdrop-blur-md text-white py-8 border-t border-white/10">
+                <footer className="bg-black/100 backdrop-blur-md text-white py-8 border-t border-white/10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                         {/* Layout Change: 
@@ -275,9 +280,9 @@ const Home = () => {
 
                                 {/* Navigation Links */}
                                 <div className="flex space-x-6 sd:pl-0 md:pl-20 md:space-x-8">
-                                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">About</a>
-                                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">Events</a>
-                                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">Contact</a>
+                                    <a href="/about" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">About</a>
+                                    <a href="/events" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">Events</a>
+                                    <a href="/contact" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">Contact</a>
                                     {/* <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors font-medium text-sm uppercase tracking-wider">Sponsors</a> */}
                                 </div>
 
@@ -303,13 +308,13 @@ const Home = () => {
                         {/* Bottom Section: Copyright */}
                         <div className="pt-4 flex flex-col md:flex-row justify-center items-center gap-4 text-center">
                             <p className="text-gray-500 text-sm">
-                                Copyright © Aviskhar 2026. All rights reserved.
+                                Copyright © Aviskhar {new Date().getFullYear()}. All rights reserved.
                             </p>
                             {/* Added a separator dot for desktop view */}
-                            <span className="hidden md:block text-gray-700">•</span>
+                            {/* <span className="hidden md:block text-gray-700">•</span>
                             <p className="text-gray-300 text-xs">
                                 Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Prem Sagar</a> and <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Dinesh</a>
-                            </p>
+                            </p> */}
                         </div>
                     </div>
                 </footer>
@@ -319,5 +324,4 @@ const Home = () => {
 };
 
 export default Home;
-
 

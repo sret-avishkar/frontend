@@ -17,8 +17,9 @@ import CustomContextMenu from './components/CustomContextMenu';
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerQRScanner from './pages/organizer/OrganizerQRScanner';
 import PendingApproval from './pages/PendingApproval';
-import BackgroundWrapper from './components/BackgroundWrapper';
+
 import PreviousYear from './pages/PreviousYear';
+import Profile from './pages/Profile';
 
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -49,10 +50,10 @@ function App() {
 
 const Layout = () => {
   return (
-    <BackgroundWrapper>
+    <>
       <Navbar />
       <Outlet />
-    </BackgroundWrapper>
+    </>
   );
 };
 
@@ -71,6 +72,8 @@ function AppContent() {
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetails />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              {/* Organizer Routes */}
               <Route path="/organizer" element={<OrganizerDashboard />} />
               <Route path="/organizer/scan" element={<OrganizerQRScanner />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
