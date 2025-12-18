@@ -1,0 +1,91 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import Dashboard from './pages/Dashboard';
+import Events from './pages/Events';
+import NotFound from './pages/NotFound';
+import EventDetails from './pages/EventDetails';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import CustomContextMenu from './components/CustomContextMenu';
+import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
+import OrganizerQRScanner from './pages/organizer/OrganizerQRScanner';
+import PendingApproval from './pages/PendingApproval';
+import BackgroundWrapper from './components/BackgroundWrapper';
+import PreviousYear from './pages/PreviousYear';
+
+import { Toaster, toast } from 'react-hot-toast';
+
+function App() {
+  useEffect(() => {
+    const blockKeys = (e) => {
+      if (!e.key) return;
+      const key = e.key.toLowerCase();
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) ||
+        (e.ctrlKey && key === "u")
+      ) {
+        e.preventDefault();
+        toast.error("Action disabled.");
+      }
+    };
+    document.addEventListener("keydown", blockKeys);
+    return () => document.removeEventListener("keydown", blockKeys);
+  }, []);
+  return (
+    <>
+      <CustomContextMenu />
+      <AppContent />
+    </>
+  );
+}
+
+const Layout = () => {
+  return (
+    <BackgroundWrapper>
+      <Navbar />
+      <Outlet />
+    </BackgroundWrapper>
+  );
+};
+
+function AppContent() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
+          <Toaster position="top-right" />
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetails />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/organizer" element={<OrganizerDashboard />} />
+              <Route path="/organizer/scan" element={<OrganizerQRScanner />} />
+              <Route path="/admin/*" element={<AdminDashboard />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/pending-approval" element={<PendingApproval />} />
+              {/* Previous Years Route - matches /23-24, /2025, etc. */}
+              <Route path="/:year" element={<PreviousYear />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;

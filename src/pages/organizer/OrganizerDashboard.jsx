@@ -1,0 +1,284 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import EventForm from '../../components/EventForm';
+import api from '../../services/api';
+import { Plus, X, Users, QrCode, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+
+const OrganizerDashboard = () => {
+    const { currentUser, userRole } = useAuth();
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modals State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+    const [selectedEventParticipants, setSelectedEventParticipants] = useState([]);
+    const [currentEventName, setCurrentEventName] = useState('');
+    const [currentEventId, setCurrentEventId] = useState(null);
+    const [editingEvent, setEditingEvent] = useState(null);
+
+    const fetchEvents = async () => {
+        if (!currentUser) return;
+        try {
+            // Pass organizerId to filter events
+            const response = await api.get(`/events?organizerId=${currentUser.uid}`);
+            setEvents(response.data);
+        } catch (error) {
+            console.error("Failed to fetch events", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchEvents();
+    }, [currentUser]);
+
+    const handleViewParticipants = async (eventId, eventTitle) => {
+        try {
+            const response = await api.get(`/registrations/event/${eventId}`);
+            setSelectedEventParticipants(response.data);
+            setCurrentEventName(eventTitle);
+            setCurrentEventId(eventId);
+            setShowParticipantsModal(true);
+        } catch (error) {
+            console.error("Failed to fetch participants", error);
+            alert("Failed to fetch participants");
+        }
+    };
+
+    const handleEditEvent = (event) => {
+        setEditingEvent(event);
+        setShowCreateModal(true);
+    };
+
+    const handleApprovePayment = async (registrationId) => {
+        try {
+            // Optimistic update
+            setSelectedEventParticipants(prev =>
+                prev.map(p => p.id === registrationId ? { ...p, status: 'approved' } : p)
+            );
+
+            await api.put(`/registrations/${registrationId}/status`, { status: 'approved' });
+            toast.success("Payment approved");
+        } catch (error) {
+            console.error("Failed to approve payment", error);
+            toast.error("Failed to approve payment");
+            // Revert on failure (optional, or just re-fetch)
+            if (currentEventId) {
+                const response = await api.get(`/registrations/event/${currentEventId}`);
+                setSelectedEventParticipants(response.data);
+            }
+        }
+    };
+
+    const handleRejectPayment = async (registrationId) => {
+        if (window.confirm("Are you sure you want to reject this registration?")) {
+            try {
+                // Optimistic update
+                setSelectedEventParticipants(prev =>
+                    prev.map(p => p.id === registrationId ? { ...p, status: 'rejected' } : p)
+                );
+
+                await api.put(`/registrations/${registrationId}/status`, { status: 'rejected' });
+                toast.success("Registration rejected");
+            } catch (error) {
+                console.error("Failed to reject registration", error);
+                toast.error("Failed to reject registration");
+                // Revert on failure
+                if (currentEventId) {
+                    const response = await api.get(`/registrations/event/${currentEventId}`);
+                    setSelectedEventParticipants(response.data);
+                }
+            }
+        }
+    };
+
+    if (!currentUser || userRole !== 'organizer') {
+        return <div className="p-8 text-center">Access Denied. Organizer privileges required.</div>;
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
+                    <div className="flex items-center gap-4">
+                        <Link
+                            to="/organizer/scan"
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
+                        >
+                            <QrCode size={20} /> Scan QR
+                        </Link>
+                        <button
+                            onClick={() => {
+                                setEditingEvent(null);
+                                setShowCreateModal(true);
+                            }}
+                            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                        >
+                            <Plus size={20} /> Create Event
+                        </button>
+                    </div>
+                </div>
+
+                {/* Events List */}
+                <div>
+                    <h2 className="text-2xl font-bold mb-6">Manage Events</h2>
+                    {loading ? (
+                        <p>Loading events...</p>
+                    ) : events.length === 0 ? (
+                        <p className="text-gray-500">No events found.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {events.map((event) => (
+                                <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+                                    <img
+                                        src={event.imageUrl || 'https://via.placeholder.com/400x200'}
+                                        alt={event.title}
+                                        className="w-full h-48 object-cover"
+                                    />
+                                    <div className="p-6 flex-grow flex flex-col">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+                                                {event.category}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-2 py-1 text-xs rounded-full font-semibold capitalize ${event.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                    event.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                        'bg-yellow-100 text-yellow-800'
+                                                    }`}>
+                                                    {event.status || 'pending'}
+                                                </span>
+                                                <span className="text-green-600 font-bold">₹{event.price}</span>
+                                            </div>
+                                        </div>
+                                        <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{event.description}</p>
+                                        <div className="text-sm text-gray-500 mb-4">
+                                            <p>📅 {new Date(event.date).toLocaleDateString()}</p>
+                                            <p>📍 {event.venue}</p>
+                                        </div>
+
+                                        <div className="mt-auto space-y-2">
+                                            <button
+                                                onClick={() => handleViewParticipants(event.id, event.title)}
+                                                className="w-full flex items-center justify-center gap-2 bg-purple-100 text-purple-700 py-2 rounded-md hover:bg-purple-200 transition-colors"
+                                            >
+                                                <Users size={18} /> View Participants
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditEvent(event)}
+                                                className="w-full flex items-center justify-center gap-2 bg-blue-100 text-blue-700 py-2 rounded-md hover:bg-blue-200 transition-colors"
+                                            >
+                                                Edit Event
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Create Event Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in-up">
+                        <button
+                            onClick={() => setShowCreateModal(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
+                        >
+                            <X size={24} />
+                        </button>
+                        <div className="p-6">
+                            <EventForm
+                                initialData={editingEvent}
+                                onEventCreated={() => {
+                                    fetchEvents();
+                                    setShowCreateModal(false);
+                                    setEditingEvent(null);
+                                }} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* View Participants Modal */}
+            {showParticipantsModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col animate-fade-in-up">
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-xl font-bold">Participants for {currentEventName}</h2>
+                            <button
+                                onClick={() => setShowParticipantsModal(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            {selectedEventParticipants.length === 0 ? (
+                                <p className="text-gray-500 text-center py-8">No participants registered yet.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {selectedEventParticipants.map((participant) => (
+                                                <tr key={participant.id}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{participant.name || 'N/A'}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.email}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.mobile}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${participant.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                            participant.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                            }`}>
+                                                            {participant.status === 'approved' ? 'Paid' :
+                                                                participant.status === 'rejected' ? 'Rejected' :
+                                                                    'Pending'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        {participant.paymentScreenshotUrl ? (
+                                                            <a href={participant.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">View Proof</a>
+                                                        ) : (
+                                                            <span className="text-gray-400 text-xs">No Proof</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        {participant.status === 'pending' && (
+                                                            <div className="flex gap-2">
+                                                                <button onClick={() => handleApprovePayment(participant.id)} className="text-green-600 hover:text-green-900" title="Approve"><Check size={18} /></button>
+                                                                <button onClick={() => handleRejectPayment(participant.id)} className="text-red-600 hover:text-red-900" title="Reject"><X size={18} /></button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default OrganizerDashboard;
