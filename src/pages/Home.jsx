@@ -56,7 +56,6 @@ const Home = () => {
                 setDeadlineLoading(false);
             }
         };
-        fetchEvents(); // Wait, this is fetchSettings. Logic error in original file variable naming? No, separate fetch.
         fetchSettings();
     }, []);
 
