@@ -80,7 +80,7 @@ const Register = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30 backdrop-blur-[3px]"></div>
 
             {/* Back Button */}
-            <Link to="/" className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white/90 hover:text-white transition-all bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg group">
+            <Link to="/" className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white/90 hover:text-white transition-all bg-white/5 hover:bg-white/20 px-5 py-2.5 rounded-full backdrop-blur-xl border border-white/10 shadow-lg group">
                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                 <span className="font-medium">Back to Home</span>
             </Link>
