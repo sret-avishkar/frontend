@@ -14,11 +14,8 @@ const OrganizerDashboard = () => {
     const [loading, setLoading] = useState(true);
 
     // Modals State
+    // Modals State
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showParticipantsModal, setShowParticipantsModal] = useState(false);
-    const [selectedEventParticipants, setSelectedEventParticipants] = useState([]);
-    const [currentEventName, setCurrentEventName] = useState('');
-    const [currentEventId, setCurrentEventId] = useState(null);
     const [editingEvent, setEditingEvent] = useState(null);
 
     const fetchEvents = async () => {
@@ -38,64 +35,9 @@ const OrganizerDashboard = () => {
         fetchEvents();
     }, [currentUser]);
 
-    const handleViewParticipants = async (eventId, eventTitle) => {
-        try {
-            const response = await api.get(`/registrations/event/${eventId}`);
-            setSelectedEventParticipants(response.data);
-            setCurrentEventName(eventTitle);
-            setCurrentEventId(eventId);
-            setShowParticipantsModal(true);
-        } catch (error) {
-            console.error("Failed to fetch participants", error);
-            alert("Failed to fetch participants");
-        }
-    };
-
     const handleEditEvent = (event) => {
         setEditingEvent(event);
         setShowCreateModal(true);
-    };
-
-    const handleApprovePayment = async (registrationId) => {
-        try {
-            // Optimistic update
-            setSelectedEventParticipants(prev =>
-                prev.map(p => p.id === registrationId ? { ...p, status: 'approved' } : p)
-            );
-
-            await api.put(`/registrations/${registrationId}/status`, { status: 'approved' });
-            toast.success("Payment approved");
-        } catch (error) {
-            console.error("Failed to approve payment", error);
-            toast.error("Failed to approve payment");
-            // Revert on failure (optional, or just re-fetch)
-            if (currentEventId) {
-                const response = await api.get(`/registrations/event/${currentEventId}`);
-                setSelectedEventParticipants(response.data);
-            }
-        }
-    };
-
-    const handleRejectPayment = async (registrationId) => {
-        if (window.confirm("Are you sure you want to reject this registration?")) {
-            try {
-                // Optimistic update
-                setSelectedEventParticipants(prev =>
-                    prev.map(p => p.id === registrationId ? { ...p, status: 'rejected' } : p)
-                );
-
-                await api.put(`/registrations/${registrationId}/status`, { status: 'rejected' });
-                toast.success("Registration rejected");
-            } catch (error) {
-                console.error("Failed to reject registration", error);
-                toast.error("Failed to reject registration");
-                // Revert on failure
-                if (currentEventId) {
-                    const response = await api.get(`/registrations/event/${currentEventId}`);
-                    setSelectedEventParticipants(response.data);
-                }
-            }
-        }
     };
 
     if (!currentUser || userRole !== 'organizer') {
@@ -167,7 +109,7 @@ const OrganizerDashboard = () => {
 
                                         <div className="mt-auto space-y-2">
                                             <button
-                                                onClick={() => handleViewParticipants(event.id, event.title)}
+                                                onClick={() => navigate(`/organizer/events/${event.id}/participants`)}
                                                 className="w-full flex items-center justify-center gap-2 bg-purple-100 text-purple-700 py-2 rounded-md hover:bg-purple-200 transition-colors"
                                             >
                                                 <Users size={18} /> View Participants
@@ -210,77 +152,8 @@ const OrganizerDashboard = () => {
                 </div>
             )}
 
-            {/* View Participants Modal */}
-            {showParticipantsModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col animate-fade-in-up">
-                        <div className="p-4 border-b flex justify-between items-center">
-                            <h2 className="text-xl font-bold">Participants for {currentEventName}</h2>
-                            <button
-                                onClick={() => setShowParticipantsModal(false)}
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="p-6 overflow-y-auto">
-                            {selectedEventParticipants.length === 0 ? (
-                                <p className="text-gray-500 text-center py-8">No participants registered yet.</p>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {selectedEventParticipants.map((participant) => (
-                                                <tr key={participant.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{participant.name || 'N/A'}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.email}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.mobile}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${participant.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                            participant.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                            }`}>
-                                                            {participant.status === 'approved' ? 'Paid' :
-                                                                participant.status === 'rejected' ? 'Rejected' :
-                                                                    'Pending'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        {participant.paymentScreenshotUrl ? (
-                                                            <a href={participant.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">View Proof</a>
-                                                        ) : (
-                                                            <span className="text-gray-400 text-xs">No Proof</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                        {participant.status === 'pending' && (
-                                                            <div className="flex gap-2">
-                                                                <button onClick={() => handleApprovePayment(participant.id)} className="text-green-600 hover:text-green-900" title="Approve"><Check size={18} /></button>
-                                                                <button onClick={() => handleRejectPayment(participant.id)} className="text-red-600 hover:text-red-900" title="Reject"><X size={18} /></button>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
+        </div >
     );
 };
 

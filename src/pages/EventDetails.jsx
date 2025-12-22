@@ -656,6 +656,22 @@ const EventDetails = () => {
                                             placeholder="CSE/IT"
                                         />
                                     </div>
+                                    {(userRole === 'admin' || userRole === 'organizer') && (
+                                        <div className="flex gap-2 w-full sm:w-auto">
+                                            <button
+                                                onClick={() => navigate(`/organizer/events/${event.id}/participants`)}
+                                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl"
+                                            >
+                                                <Users size={20} /> Manage Participants
+                                            </button>
+                                            <button
+                                                onClick={() => setShowEditModal(true)}
+                                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                                            >
+                                                <Edit size={20} /> Edit Event
+                                            </button>
+                                        </div>
+                                    )}
                                     <button
                                         type="submit"
                                         className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"

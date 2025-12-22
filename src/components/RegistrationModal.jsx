@@ -47,7 +47,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative animate-fade-in-up">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative animate-fade-in-up max-h-[90vh] overflow-y-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -104,7 +104,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                 <input
                                     type="text"
                                     required
-                                    placeholder="e.g. 21IT101"
+                                    placeholder="e.g. 234C1A0000"
                                     value={rollNo}
                                     onChange={(e) => setRollNo(e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -123,8 +123,77 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                             </div>
                         </div>
 
+                        {/* Team Member Registration */}
+                        {parseInt(event.maxTeamMembers || 1) > 1 && (
+                            <div className="border-t pt-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="font-semibold text-gray-900">Team Members ({teamMembers.length + 1}/{parseInt(event.maxTeamMembers || 1)})</h3>
+                                    {teamMembers.length < (parseInt(event.maxTeamMembers || 1) - 1) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setTeamMembers([...teamMembers, { name: '', rollNo: '', department: '' }])}
+                                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                        >
+                                            + Add Member
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-4">
+                                    {teamMembers.map((member, index) => (
+                                        <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200 relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setTeamMembers(teamMembers.filter((_, i) => i !== index))}
+                                                className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                            <div className="grid grid-cols-1 gap-3">
+                                                <input
+                                                    placeholder="Full Name"
+                                                    value={member.name}
+                                                    onChange={(e) => {
+                                                        const updated = [...teamMembers];
+                                                        updated[index].name = e.target.value;
+                                                        setTeamMembers(updated);
+                                                    }}
+                                                    className="w-full text-sm border-gray-300 rounded-md p-2"
+                                                    required
+                                                />
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <input
+                                                        placeholder="Roll No"
+                                                        value={member.rollNo}
+                                                        onChange={(e) => {
+                                                            const updated = [...teamMembers];
+                                                            updated[index].rollNo = e.target.value;
+                                                            setTeamMembers(updated);
+                                                        }}
+                                                        className="w-full text-sm border-gray-300 rounded-md p-2"
+                                                        required
+                                                    />
+                                                    <input
+                                                        placeholder="Department"
+                                                        value={member.department}
+                                                        onChange={(e) => {
+                                                            const updated = [...teamMembers];
+                                                            updated[index].department = e.target.value;
+                                                            setTeamMembers(updated);
+                                                        }}
+                                                        className="w-full text-sm border-gray-300 rounded-md p-2"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Payment Section */}
-                        {(event.paymentQrCodeUrl || event.upiId) && (
+                        {(parseInt(event.price) > 0) && (
                             <div className="border-t pt-4">
                                 <h3 className="font-semibold mb-2">Payment Details</h3>
                                 <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
@@ -153,7 +222,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
 
                         <button
                             type="submit"
-                            disabled={loading || ((event.paymentQrCodeUrl || event.upiId) && !paymentScreenshotUrl)}
+                            disabled={loading || (parseInt(event.price) > 0 && !paymentScreenshotUrl)}
                             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Registering...' : 'Confirm Registration'}
