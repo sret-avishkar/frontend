@@ -102,8 +102,8 @@ const EventParticipants = () => {
                                 key={status}
                                 onClick={() => setFilter(status)}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${filter === status
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 {status}
@@ -159,11 +159,11 @@ const EventParticipants = () => {
                                                         <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">
                                                             {p.teamMembers.length} Members
                                                         </div>
-                                                        <ul className="text-xs text-gray-600 space-y-1">
+                                                        <ul className="text-sm text-gray-600 space-y-2">
                                                             {p.teamMembers.map((tm, idx) => (
-                                                                <li key={idx} className="flex justify-between">
-                                                                    <span>{tm.name}</span>
-                                                                    <span className="text-gray-400 ml-2">{tm.rollNo}</span>
+                                                                <li key={idx} className="flex flex-col border-b border-gray-100 last:border-0 pb-1 last:pb-0">
+                                                                    <span className="font-medium text-gray-800">{tm.name}</span>
+                                                                    <span className="text-xs text-gray-500">Roll: {tm.rollNo} | Dept: {tm.department}</span>
                                                                 </li>
                                                             ))}
                                                         </ul>
@@ -190,31 +190,35 @@ const EventParticipants = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                        p.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'
+                                                    p.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                        'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(p.id, 'approved')}
-                                                        disabled={p.status === 'approved'}
-                                                        className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        title="Approve"
-                                                    >
-                                                        <CheckCircle size={20} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleStatusUpdate(p.id, 'rejected')}
-                                                        disabled={p.status === 'rejected'}
-                                                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        title="Reject"
-                                                    >
-                                                        <XCircle size={20} />
-                                                    </button>
-                                                </div>
+                                                {p.status === 'pending' ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(p.id, 'approved')}
+                                                            className="text-green-600 hover:text-green-900 bg-green-50 p-2 rounded-full hover:bg-green-100 transition-colors"
+                                                            title="Approve"
+                                                        >
+                                                            <CheckCircle size={20} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(p.id, 'rejected')}
+                                                            className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-full hover:bg-red-100 transition-colors"
+                                                            title="Reject"
+                                                        >
+                                                            <XCircle size={20} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-sm text-gray-500 italic">
+                                                        {p.status === 'approved' ? 'Approved' : 'Rejected'}
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))

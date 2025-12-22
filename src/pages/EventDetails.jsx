@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RegistrationModal from '../components/RegistrationModal';
-import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X, Image as ImageIcon, Trash2, Plus, Upload, User, Trophy, Medal } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X, Image as ImageIcon, Trash2, Plus, Upload, User, Trophy, Medal, Users, Edit } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { DetailSkeleton } from '../components/Skeleton';
 import toast from 'react-hot-toast';
