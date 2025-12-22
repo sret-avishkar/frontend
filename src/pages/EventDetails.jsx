@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RegistrationModal from '../components/RegistrationModal';
-import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X, Image as ImageIcon, Trash2, Plus, Upload } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X, Image as ImageIcon, Trash2, Plus, Upload, User } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { DetailSkeleton } from '../components/Skeleton';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ const EventDetails = () => {
     const [deadline, setDeadline] = useState(null);
     const [registrationData, setRegistrationData] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null); // State for lightbox
 
     useEffect(() => {
         const fetchEventAndSettings = async () => {
@@ -170,7 +171,8 @@ const EventDetails = () => {
         }
     };
 
-    const handleDeleteImage = async (imageToDelete) => {
+    const handleDeleteImage = async (e, imageToDelete) => {
+        e.stopPropagation(); // Prevent opening lightbox
         if (!window.confirm("Are you sure you want to delete this photo?")) return;
 
         try {
@@ -267,26 +269,26 @@ const EventDetails = () => {
                             <h3 className="text-xl font-bold mb-2 text-gray-900">About the Event</h3>
                             <p className="text-gray-700 whitespace-pre-line leading-relaxed mb-6">{event.description}</p>
 
-                            {(event.organizerName || event.organizerEmail || event.organizerMobile) && (
-                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8">
-                                    <h3 className="text-lg font-bold mb-4 text-gray-900">Organizer Details</h3>
-                                    <div className="grid md:grid-cols-2 gap-4">
+                            {/* Organizer Contact - Hide if completed */}
+                            {(!isEventCompleted && (event.organizerName || event.organizerEmail || event.organizerMobile)) && (
+                                <div className="mb-8 p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <User size={20} className="text-blue-600" /> Organizer Contact
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {event.organizerName && (
-                                            <div>
-                                                <p className="text-sm text-gray-500">Coordinator</p>
-                                                <p className="text-gray-800 font-medium">{event.organizerName}</p>
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <span className="font-medium">Name:</span> {event.organizerName}
                                             </div>
                                         )}
                                         {event.organizerEmail && (
-                                            <div>
-                                                <p className="text-sm text-gray-500">Email</p>
-                                                <p className="text-gray-800 font-medium break-all">{event.organizerEmail}</p>
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <span className="font-medium">Email:</span> {event.organizerEmail}
                                             </div>
                                         )}
                                         {event.organizerMobile && (
-                                            <div>
-                                                <p className="text-sm text-gray-500">Mobile</p>
-                                                <p className="text-gray-800 font-medium">{event.organizerMobile}</p>
+                                            <div className="flex items-center gap-3 text-gray-700">
+                                                <span className="font-medium">Mobile:</span> {event.organizerMobile}
                                             </div>
                                         )}
                                     </div>
@@ -334,17 +336,17 @@ const EventDetails = () => {
                                     ) : (
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                             {event.gallery.map((img, index) => (
-                                                <div key={index} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100">
+                                                <div key={index} className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all" onClick={() => setSelectedImage(img)}>
                                                     <img
                                                         src={img}
-                                                        alt={`Gallery ${index + 1}`}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                        alt={`Event Moment ${index + 1}`}
+                                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                                                     />
                                                     {(userRole === 'admin' || userRole === 'organizer') && isEventCompleted && (
                                                         <button
-                                                            onClick={() => handleDeleteImage(img)}
-                                                            className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                                            title="Delete photo"
+                                                            onClick={(e) => handleDeleteImage(e, img)}
+                                                            className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 backdrop-blur-sm"
+                                                            title="Delete Photo"
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>
@@ -393,9 +395,11 @@ const EventDetails = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-gray-100 border border-gray-200 rounded-lg text-center text-gray-600">
-                                        You are viewing this event as an {userRole}.
-                                    </div>
+                                    !isEventCompleted && (
+                                        <div className="p-4 bg-gray-100 border border-gray-200 rounded-lg text-center text-gray-600">
+                                            You are viewing this event as an {userRole}.
+                                        </div>
+                                    )
                                 )}
                             </div>
                         </div>
@@ -436,6 +440,24 @@ const EventDetails = () => {
                                 </p>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Image Lightbox Modal */}
+                {selectedImage && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute top-6 right-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors md:p-3"
+                        >
+                            <X size={32} />
+                        </button>
+                        <img
+                            src={selectedImage}
+                            alt="Full View"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()} // Prevent close on image click
+                        />
                     </div>
                 )}
             </div>

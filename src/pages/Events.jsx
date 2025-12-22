@@ -98,10 +98,10 @@ const Events = () => {
     return (
         <div className="min-h-screen text-gray-900 pb-20">
             <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="text-center mb-12">
+                {/* <div className="text-center mb-12">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Events</h1>
                     <p className="text-xl text-gray-600">Discover and participate in various technical and non-technical events.</p>
-                </div>
+                </div> */}
 
                 {/* Category Filter Bar */}
                 <div className="flex flex-wrap justify-center gap-4 mb-16">

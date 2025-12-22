@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { X, QrCode } from 'lucide-react';
@@ -13,6 +14,7 @@ const Dashboard = () => {
     const [showQRModal, setShowQRModal] = useState(false);
     const [selectedQRData, setSelectedQRData] = useState(null);
     const [selectedEventTitle, setSelectedEventTitle] = useState('');
+    const navigate = useNavigate();
 
     const fetchEvents = async () => {
         try {
@@ -44,7 +46,7 @@ const Dashboard = () => {
     }, [currentUser, userRole]);
 
     const handleRegister = (eventId) => {
-        window.location.href = `/events/${eventId}`;
+        navigate(`/events/${eventId}`);
     };
 
     const handleShowQR = (event) => {
@@ -167,7 +169,7 @@ const Dashboard = () => {
                                             src={event.imageUrl || 'https://via.placeholder.com/400x200'}
                                             alt={event.title}
                                             className="w-full h-48 object-cover cursor-pointer"
-                                            onClick={() => window.location.href = `/events/${event.id}`}
+                                            onClick={() => navigate(`/events/${event.id}`)}
                                         />
                                         <div className="p-6 flex-grow flex flex-col">
                                             <div className="flex justify-between items-start mb-2">
@@ -176,7 +178,7 @@ const Dashboard = () => {
                                                 </span>
                                                 <span className="text-green-600 font-bold">₹{event.price}</span>
                                             </div>
-                                            <h3 className="text-xl font-bold mb-2 cursor-pointer hover:text-blue-600" onClick={() => window.location.href = `/events/${event.id}`}>{event.title}</h3>
+                                            <h3 className="text-xl font-bold mb-2 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/events/${event.id}`)}>{event.title}</h3>
                                             <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{event.description}</p>
                                             <div className="text-sm text-gray-500 mb-4">
                                                 <p>📅 {new Date(event.date).toLocaleDateString()}</p>

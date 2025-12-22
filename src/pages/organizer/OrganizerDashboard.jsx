@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import EventForm from '../../components/EventForm';
 import api from '../../services/api';
 import { Plus, X, Users, QrCode, Check } from 'lucide-react';
@@ -8,6 +9,7 @@ import toast from 'react-hot-toast';
 
 const OrganizerDashboard = () => {
     const { currentUser, userRole } = useAuth();
+    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -138,7 +140,8 @@ const OrganizerDashboard = () => {
                                     <img
                                         src={event.imageUrl || 'https://via.placeholder.com/400x200'}
                                         alt={event.title}
-                                        className="w-full h-48 object-cover"
+                                        className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => navigate(`/events/${event.id}`)}
                                     />
                                     <div className="p-6 flex-grow flex flex-col">
                                         <div className="flex justify-between items-start mb-2">
@@ -155,7 +158,7 @@ const OrganizerDashboard = () => {
                                                 <span className="text-green-600 font-bold">₹{event.price}</span>
                                             </div>
                                         </div>
-                                        <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                                        <h3 className="text-xl font-bold mb-2 cursor-pointer hover:text-blue-600 transition-colors" onClick={() => navigate(`/events/${event.id}`)}>{event.title}</h3>
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{event.description}</p>
                                         <div className="text-sm text-gray-500 mb-4">
                                             <p>📅 {new Date(event.date).toLocaleDateString()}</p>
