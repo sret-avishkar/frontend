@@ -12,11 +12,13 @@ import AdminGallery from './AdminGallery';
 import AdminSettings from './AdminSettings';
 import { useAuth } from '../../context/AuthContext';
 
+import { DashboardSkeleton } from '../../components/Skeleton';
+
 const AdminDashboard = () => {
     const { userRole, loading } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <DashboardSkeleton />;
 
     if (userRole !== 'admin') {
         return <Navigate to="/dashboard" />;
@@ -54,7 +56,7 @@ const AdminDashboard = () => {
                     <Route path="/attendance" element={<AdminAttendance />} />
                     <Route path="/participants" element={<AdminParticipants />} />
                     <Route path="/users" element={<AdminUsers />} />
-                    <Route path="/gallery" element={<AdminGallery />} />
+                    {/* <Route path="/gallery" element={<AdminGallery />} /> */}
                     <Route path="/settings" element={<AdminSettings />} />
                 </Routes>
             </div>

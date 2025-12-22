@@ -8,6 +8,17 @@ const api = axios.create({
     baseURL: API_URL,
 });
 
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (!error.response) {
+            // Network Error (no response received)
+            window.dispatchEvent(new Event('network-error'));
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const uploadImage = async (base64Image, folder) => {
     try {
         const response = await api.post('/upload', { image: base64Image, folder });

@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { Plus, X, Users, QrCode, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { DashboardSkeleton } from '../../components/Skeleton';
 
 const OrganizerDashboard = () => {
     const { currentUser, userRole } = useAuth();
@@ -13,10 +14,14 @@ const OrganizerDashboard = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Modals State
+
     // Modals State
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+
+    if (loading) {
+        return <DashboardSkeleton />;
+    }
 
     const fetchEvents = async () => {
         if (!currentUser) return;
@@ -73,12 +78,9 @@ const OrganizerDashboard = () => {
                     </div>
                 </div>
 
-                {/* Events List */}
                 <div>
                     <h2 className="text-2xl font-bold mb-6">Manage Events</h2>
-                    {loading ? (
-                        <p>Loading events...</p>
-                    ) : events.length === 0 ? (
+                    {events.length === 0 ? (
                         <p className="text-gray-500">No events found.</p>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

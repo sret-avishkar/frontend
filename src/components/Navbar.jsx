@@ -127,9 +127,9 @@ const Navbar = () => {
                         <Link to="/events" className="hover:text-blue-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
                             Events
                         </Link>
-                        <Link to="/previous-years" className="hover:text-blue-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
+                        {/* <Link to="/previous-years" className="hover:text-blue-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
                             Previous Years
-                        </Link>
+                        </Link> */}
                         <Link to="/about" className="hover:text-blue-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
                             About
                         </Link>
@@ -208,13 +208,13 @@ const Navbar = () => {
                         >
                             Events
                         </Link>
-                        <Link
+                        {/* <Link
                             to="/previous-years"
                             onClick={() => setIsOpen(false)}
                             className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-white/10"
                         >
                             Archive
-                        </Link>
+                        </Link> */}
                         <Link
                             to="/about"
                             onClick={() => setIsOpen(false)}

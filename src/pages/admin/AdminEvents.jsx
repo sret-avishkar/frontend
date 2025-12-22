@@ -2,24 +2,57 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Trash2, Eye, Plus, X, Edit } from 'lucide-react';
 import EventForm from '../../components/EventForm';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const AdminEvents = () => {
     const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+
+    const [selectedYear, setSelectedYear] = useState('');
+    const [availableYears, setAvailableYears] = useState([]);
 
     const fetchEvents = async () => {
         try {
             const response = await api.get('/events?role=admin');
-            setEvents(response.data);
+            const allEvents = response.data;
+
+            // Extract unique years from Event Dates (ignoring metadata year to match visual column)
+            const years = [...new Set(allEvents.map(e => {
+                return new Date(e.date).getFullYear().toString();
+            }))].sort();
+            setAvailableYears(years);
+
+            // Default to current year if available, else first year
+            if (years.length > 0 && !selectedYear) {
+                const currentYear = new Date().getFullYear().toString();
+                if (years.includes(currentYear)) {
+                    setSelectedYear(currentYear);
+                } else {
+                    setSelectedYear(years[0]);
+                }
+            }
+
+            setEvents(allEvents);
         } catch (error) {
             console.error("Failed to fetch events", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         fetchEvents();
     }, []);
+
+    // Filter events based on selected year
+    const filteredEvents = events.filter(e => {
+        if (!selectedYear) return true;
+        // Strict date-based filtering to match the displayed Date column
+        const eventYear = new Date(e.date).getFullYear().toString();
+        return eventYear === selectedYear;
+    });
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this event?')) {
@@ -42,16 +75,39 @@ const AdminEvents = () => {
         setEditingEvent(null);
     };
 
+    if (loading) return <TableSkeleton />;
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">All Events</h2>
-                <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    <Plus size={20} /> Add Event
-                </button>
+                <div className="flex gap-4 items-center">
+                    {/* Year Selector */}
+                    {availableYears.length > 0 && (
+                        <div className="flex gap-2">
+                            {availableYears.map((year) => (
+                                <button
+                                    key={year}
+                                    onClick={() => setSelectedYear(year)}
+                                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors border
+                                    ${selectedYear === year
+                                            ? 'bg-blue-600 text-white border-blue-600'
+                                            : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                                        }`}
+                                >
+                                    {year}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <Plus size={20} /> Add Event
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
@@ -67,12 +123,12 @@ const AdminEvents = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {events.length === 0 ? (
+                        {filteredEvents.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No events found.</td>
+                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No events found for {selectedYear}.</td>
                             </tr>
                         ) : (
-                            events.map((event) => (
+                            filteredEvents.map((event) => (
                                 <tr key={event.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">{event.title}</div>
@@ -80,23 +136,21 @@ const AdminEvents = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {new Date(event.date).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                                        {event.category}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {event.organizerName || event.organizerEmail || <span className="text-gray-400 italic">Unassigned</span>}
-                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{event.category}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.organizerName || 'Admin'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${event.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {event.status || 'approved'}
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            ${event.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                event.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'}`}>
+                                            {event.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => handleEdit(event)} className="text-blue-600 hover:text-blue-900 ml-4">
+                                        <button onClick={() => handleEdit(event)} className="text-blue-600 hover:text-blue-900 mr-4">
                                             <Edit size={18} />
                                         </button>
-                                        <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-900 ml-4">
+                                        <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-900">
                                             <Trash2 size={18} />
                                         </button>
                                     </td>
@@ -132,5 +186,6 @@ const AdminEvents = () => {
         </div>
     );
 };
+
 
 export default AdminEvents;

@@ -22,6 +22,7 @@ import PendingApproval from './pages/auth/PendingApproval';
 import PreviousYear from './pages/PreviousYear';
 import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
+import NoInternet from './pages/NoInternet';
 
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -42,6 +43,29 @@ function App() {
     document.addEventListener("keydown", blockKeys);
     return () => document.removeEventListener("keydown", blockKeys);
   }, []);
+
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    const handleNetworkError = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('network-error', handleNetworkError);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('network-error', handleNetworkError);
+    };
+  }, []);
+
+  if (isOffline) {
+    return <NoInternet onRetry={() => setIsOffline(false)} />;
+  }
+
   return (
     <>
       <CustomContextMenu />
@@ -84,7 +108,7 @@ function AppContent() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/pending-approval" element={<PendingApproval />} />
-              <Route path="/previous-years" element={<PreviousYear />} />
+              {/* <Route path="/previous-years" element={<PreviousYear />} /> */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

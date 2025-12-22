@@ -51,7 +51,11 @@ const AdminParticipants = () => {
                     className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
                 >
                     <option value="">-- Select Event --</option>
-                    {events.map(event => (
+                    {events.filter(e => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return new Date(e.date) >= today;
+                    }).map(event => (
                         <option key={event.id} value={event.id}>{event.title}</option>
                     ))}
                 </select>

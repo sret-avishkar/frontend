@@ -16,19 +16,37 @@ const Events = () => {
     const [selectedQRData, setSelectedQRData] = useState(null);
     const [selectedEventTitle, setSelectedEventTitle] = useState('');
 
+    const [selectedYear, setSelectedYear] = useState('');
+    const [availableYears, setAvailableYears] = useState([]);
+
     useEffect(() => {
         const fetchEvents = async () => {
             try {
                 const response = await api.get('/events');
                 // Only show active/approved events, and filter out those that have passed (date < today)
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // specific time adjustment often desirable, but simple comparison works
+                today.setHours(0, 0, 0, 0);
 
                 const activeEvents = response.data.filter(e => {
                     if (e.status !== 'approved') return false;
                     const eventDate = new Date(e.date);
                     return eventDate >= today;
                 });
+
+                // Extract unique years using event.year property (or derive from date if needed)
+                const years = [...new Set(activeEvents.map(e => e.year || new Date(e.date).getFullYear().toString()))].sort();
+                setAvailableYears(years);
+
+                // Default to first available year or current year if available
+                if (years.length > 0 && !selectedYear) {
+                    const currentYear = new Date().getFullYear().toString();
+                    if (years.includes(currentYear)) {
+                        setSelectedYear(currentYear);
+                    } else {
+                        setSelectedYear(years[0]);
+                    }
+                }
+
                 setEvents(activeEvents);
             } catch (error) {
                 console.error("Failed to fetch events", error);
@@ -52,6 +70,12 @@ const Events = () => {
         fetchRegistrations();
     }, [currentUser, userRole]);
 
+    // Filter events based on selected year
+    const filteredEvents = events.filter(e => {
+        if (!selectedYear) return true;
+        return (e.year || new Date(e.date).getFullYear().toString()) === selectedYear;
+    });
+
     const handleShowQR = (e, eventId, eventTitle) => {
         e.preventDefault(); // Prevent Link navigation
         const registration = myRegistrations.find(r => r.eventId === eventId);
@@ -67,7 +91,7 @@ const Events = () => {
     };
 
     // Group events by category
-    const groupedEvents = events.reduce((acc, event) => {
+    const groupedEvents = filteredEvents.reduce((acc, event) => {
         const category = event.category || 'Other';
         if (!acc[category]) {
             acc[category] = [];
@@ -89,8 +113,14 @@ const Events = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-gray-800">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen text-gray-900 pb-20">
+                <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <CardSkeleton key={i} />
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -98,10 +128,24 @@ const Events = () => {
     return (
         <div className="min-h-screen text-gray-900 pb-20">
             <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                {/* <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Events</h1>
-                    <p className="text-xl text-gray-600">Discover and participate in various technical and non-technical events.</p>
-                </div> */}
+                {/* Year Selector */}
+                {availableYears.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2 mb-8">
+                        {availableYears.map((year) => (
+                            <button
+                                key={year}
+                                onClick={() => setSelectedYear(year)}
+                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border
+                                ${selectedYear === year
+                                        ? 'bg-gray-800 text-white border-gray-800'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'
+                                    }`}
+                            >
+                                {year}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {/* Category Filter Bar */}
                 <div className="flex flex-wrap justify-center gap-4 mb-16">

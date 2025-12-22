@@ -6,6 +6,7 @@ import { User, Mail, Phone, Shield, Save, Loader, QrCode, X, Calendar, Edit } fr
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import QRCode from 'react-qr-code';
+import { DashboardSkeleton } from '../components/Skeleton';
 
 const Profile = () => {
     const { currentUser, userRole } = useAuth();
@@ -59,7 +60,11 @@ const Profile = () => {
             if (currentUser && userRole === 'participant') {
                 try {
                     const response = await api.get(`/registrations/user/${currentUser.uid}`);
-                    setMyRegistrations(response.data);
+                    // Filter out completed events
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const activeRegistrations = response.data.filter(reg => new Date(reg.eventDate) >= today);
+                    setMyRegistrations(activeRegistrations);
                 } catch (error) {
                     console.error("Failed to fetch my registrations", error);
                 }
@@ -103,11 +108,7 @@ const Profile = () => {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center text-gray-800">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     return (
