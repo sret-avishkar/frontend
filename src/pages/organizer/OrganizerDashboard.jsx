@@ -153,7 +153,6 @@ const OrganizerDashboard = () => {
             )}
 
         </div>
-        </div >
     );
 };
 
