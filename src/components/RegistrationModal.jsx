@@ -10,6 +10,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
     const [college, setCollege] = useState(currentUser?.college || '');
     const [rollNo, setRollNo] = useState(currentUser?.rollNo || '');
     const [department, setDepartment] = useState(currentUser?.department || '');
+    const [teamMembers, setTeamMembers] = useState([]);
     const [paymentScreenshotUrl, setPaymentScreenshotUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -29,11 +30,10 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                 department,
                 email: currentUser.email,
                 name: currentUser.displayName || 'Participant',
+                teamMembers,
                 paymentScreenshotUrl,
                 status: 'pending' // Default status until organizer approves
             });
-            onRegistrationSuccess();
-            onClose();
             onRegistrationSuccess();
             onClose();
             alert('Registration submitted! Please wait for organizer approval.');

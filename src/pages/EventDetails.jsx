@@ -24,7 +24,8 @@ const EventDetails = () => {
     const [uploading, setUploading] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null); // State for lightbox
     const [showWinnerModal, setShowWinnerModal] = useState(false);
-    const [winnerData, setWinnerData] = useState({ name: '', position: '1st', rollNo: '', department: '' });
+    const [winnerData, setWinnerData] = useState({ name: '', position: '1st', rollNo: '', department: '', college: '' });
+    const [participants, setParticipants] = useState([]);
 
     useEffect(() => {
         const fetchEventAndSettings = async () => {
@@ -202,13 +203,28 @@ const EventDetails = () => {
             });
 
             setEvent(prev => ({ ...prev, winners: updatedWinners }));
-            setWinnerData({ name: '', position: '1st', rollNo: '', department: '' });
+            setWinnerData({ name: '', position: '1st', rollNo: '', department: '', college: '' });
             setShowWinnerModal(false);
             toast.success('Winner added successfully!');
         } catch (error) {
             console.error(error);
             toast.error('Failed to add winner');
         }
+    };
+
+    const fetchParticipants = async () => {
+        try {
+            const res = await api.get(`/registrations/event/${id}`);
+            // deduplicate by userId or name/rollNo? Let's just use the list.
+            setParticipants(res.data);
+        } catch (err) {
+            console.error("Failed to fetch participants", err);
+        }
+    };
+
+    const handleOpenWinnerModal = () => {
+        setShowWinnerModal(true);
+        fetchParticipants();
     };
 
     const handleDeleteWinner = async (winnerId) => {
@@ -394,7 +410,7 @@ const EventDetails = () => {
                                         </h3>
                                         {(userRole === 'admin' || userRole === 'organizer') && isEventCompleted && (
                                             <button
-                                                onClick={() => setShowWinnerModal(true)}
+                                                onClick={handleOpenWinnerModal}
                                                 className="flex items-center gap-1.5 text-sm font-semibold text-white bg-yellow-500 px-3 py-1.5 rounded-lg shadow-sm hover:bg-yellow-600 transition-colors"
                                             >
                                                 <Plus size={16} /> Add Winner
@@ -423,8 +439,19 @@ const EventDetails = () => {
                                                     <div>
                                                         <h4 className="font-bold text-gray-900 text-lg">{winner.name}</h4>
                                                         <p className="text-sm text-gray-600">{winner.department} • {winner.college || 'N/A'}</p>
+                                                        {winner.teamMembers && winner.teamMembers.length > 0 && (
+                                                            <div className="mt-2">
+                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Team:</p>
+                                                                <ul className="text-sm text-gray-600 list-disc list-inside">
+                                                                    {winner.teamMembers.map((tm, tmi) => (
+                                                                        <li key={tmi}>{tm.name} <span className="text-gray-400">({tm.rollNo})</span></li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    {winner.position === '1st' && <Medal className="ml-auto text-yellow-500" size={24} />}
+                                                    {winner.position === '1st' && <Medal className="ml-auto text-yellow-500 shrink-0" size={24} />}
+                                                    {winner.position === '2nd' && <Medal className="ml-auto text-gray-400 shrink-0" size={24} />}
                                                     {(userRole === 'admin' || userRole === 'organizer') && isEventCompleted && (
                                                         <button
                                                             onClick={() => handleDeleteWinner(winner.id)}
@@ -558,6 +585,34 @@ const EventDetails = () => {
                                     <Trophy size={20} className="text-yellow-500" /> Add Winner
                                 </h3>
                                 <form onSubmit={handleWinnerSubmit} className="space-y-4">
+                                    {/* Participant Selector */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Select from Participants (Optional)</label>
+                                        <select
+                                            onChange={(e) => {
+                                                const p = participants.find(p => p.id === e.target.value);
+                                                if (p) {
+                                                    setWinnerData({
+                                                        ...winnerData,
+                                                        name: p.name || '',
+                                                        college: p.college || '',
+                                                        department: p.department || '',
+                                                        rollNo: p.rollNo || '',
+                                                        teamMembers: p.teamMembers || []
+                                                    });
+                                                }
+                                            }}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50"
+                                        >
+                                            <option value="">-- Select a Participant --</option>
+                                            {participants.map(p => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({p.rollNo || 'No ID'})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
                                         <select
