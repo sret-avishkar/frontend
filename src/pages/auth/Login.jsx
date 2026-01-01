@@ -65,7 +65,7 @@ const Login = () => {
     const handleGoogleLogin = async () => {
         try {
             const result = await signInWithGoogle();
-            const user = result.user;
+            const user = result;
 
             // Use imported getDoc/db
             const userDoc = await getDoc(doc(db, "users", user.uid));
