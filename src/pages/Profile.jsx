@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { User, Mail, Phone, Shield, Save, Loader, QrCode, X, Calendar, Edit } from 'lucide-react';
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { User, Mail, Phone, Shield, Save, Loader, QrCode, X, Calendar, Edit, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import QRCode from 'react-qr-code';
@@ -17,9 +18,16 @@ const Profile = () => {
         upiId: '',
         role: ''
     });
+    // Password Change State
+    const [passwords, setPasswords] = useState({
+        current: '',
+        new: '',
+        confirm: ''
+    });
     const [myRegistrations, setMyRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [passwordUpdating, setPasswordUpdating] = useState(false);
     const [activeTab, setActiveTab] = useState('settings'); // Default to settings, will adjust in useEffect
     const [showQRModal, setShowQRModal] = useState(false);
     const [selectedQRData, setSelectedQRData] = useState(null);
@@ -104,6 +112,46 @@ const Profile = () => {
             toast.error("Failed to update profile.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        if (passwords.new !== passwords.confirm) {
+            return toast.error("New passwords do not match");
+        }
+        if (passwords.new.length < 6) {
+            return toast.error("Password must be at least 6 characters");
+        }
+
+        setPasswordUpdating(true);
+        try {
+            // Re-authenticate user (optional but recommended for sensitive actions)
+            // Ideally we ask for current password, but for simplicity we'll try update directly.
+            // If it fails with 'requires-recent-login', we'd need a re-auth flow.
+            // But let's assume we want to do it proper: ask for current password.
+
+            if (!passwords.current) {
+                return toast.error("Please enter current password");
+            }
+
+            const credential = EmailAuthProvider.credential(currentUser.email, passwords.current);
+            await reauthenticateWithCredential(currentUser, credential);
+
+            await updatePassword(currentUser, passwords.new);
+            toast.success("Password updated successfully");
+            setPasswords({ current: '', new: '', confirm: '' });
+        } catch (error) {
+            console.error("Password update error:", error);
+            if (error.code === 'auth/wrong-password') {
+                toast.error("Incorrect current password");
+            } else if (error.code === 'auth/requires-recent-login') {
+                toast.error("Please log out and log in again to change password");
+            } else {
+                toast.error("Failed to update password: " + error.message);
+            }
+        } finally {
+            setPasswordUpdating(false);
         }
     };
 
@@ -248,6 +296,57 @@ const Profile = () => {
                                         placeholder="+91 9876543210"
                                     />
                                 </div>
+
+                                {/* Change Password Section - Only for Email/Password Users */}
+                                {currentUser?.providerData[0]?.providerId === 'password' && (
+                                    <div className="md:col-span-2 border-t border-gray-200 pt-6 mt-2">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                            <Lock size={18} /> Change Password
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwords.current}
+                                                    onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                    placeholder="Current Password"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwords.new}
+                                                    onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                    placeholder="New Password"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwords.confirm}
+                                                    onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                    placeholder="Confirm New Password"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 text-right">
+                                            <button
+                                                type="button" // Important: type button so main form doesn't submit
+                                                onClick={handlePasswordChange}
+                                                disabled={passwordUpdating || !passwords.current || !passwords.new}
+                                                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {passwordUpdating ? 'Updating...' : 'Update Password'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* UPI ID (Organizer only) */}
                                 {userRole === 'organizer' && (

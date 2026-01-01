@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 
 const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
     const { currentUser } = useAuth();
-    const [name, setName] = useState(currentUser?.name || currentUser?.displayName || '');
     const [mobile, setMobile] = useState(currentUser?.mobile || '');
     const [college, setCollege] = useState(currentUser?.college || '');
     const [rollNo, setRollNo] = useState(currentUser?.rollNo || '');
@@ -21,7 +20,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
         const fetchOrganizerDetails = async () => {
             let targetOrganizerId = null;
 
-            if (event.enableMultiDepartment && event.departmentOrganizers) {
+            if (event.enableMultiDepartment === true && event.departmentOrganizers) {
                 if (department && event.departmentOrganizers[department]) {
                     targetOrganizerId = event.departmentOrganizers[department];
                     console.log("Selected Dept:", department, "Mapped to Organizer ID:", targetOrganizerId);
@@ -76,9 +75,8 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                 college,
                 rollNo,
                 department,
-                department,
                 email: currentUser.email,
-                name: name, // User provided name
+                name: currentUser.displayName || 'Participant',
                 teamMembers,
                 paymentScreenshotUrl,
                 status: 'pending' // Default status until organizer approves
@@ -116,10 +114,9 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                 <label className="block text-sm font-medium text-gray-800 mb-1">Full Name</label>
                                 <input
                                     type="text"
-                                    value={name}
-                                    placeholder="Enter your full name"
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                                    value={currentUser.displayName || ''}
+                                    disabled
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-600"
                                 />
                             </div>
                             <div>
@@ -162,7 +159,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-800 mb-1">Department</label>
-                                {event.enableMultiDepartment && event.departmentOrganizers ? (
+                                {event.enableMultiDepartment === true && event.departmentOrganizers ? (
                                     <select
                                         value={department}
                                         onChange={(e) => setDepartment(e.target.value)}

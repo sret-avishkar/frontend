@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, ArrowRight, ArrowLeft, Quote, Phone } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ArrowLeft, Quote, Phone, User as UserIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const Register = () => {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,8 +40,14 @@ const Register = () => {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            // Update Profile with Name
+            await updateProfile(user, {
+                displayName: name
+            });
+
             // Create user document in Firestore
             await setDoc(doc(db, "users", user.uid), {
+                name: name,
                 email: user.email,
                 mobileNumber: mobileNumber,
                 role: 'participant', // Default role
@@ -56,7 +63,13 @@ const Register = () => {
             }
         } catch (err) {
             console.error(err);
-            toast.error('Failed to create account: ' + err.message);
+            if (err.code === 'auth/email-already-in-use') {
+                toast.error('Email already in use. Please login instead.');
+            } else if (err.code === 'auth/weak-password') {
+                toast.error('Password should be at least 6 characters.');
+            } else {
+                toast.error('Failed to create account: ' + err.message);
+            }
         } finally {
             setLoading(false);
         }
@@ -163,6 +176,25 @@ const Register = () => {
                         </div>
 
                         <form className="space-y-4" onSubmit={handleEmailRegister}>
+                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <UserIcon className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        autoComplete="name"
+                                        required
+                                        className="block w-full pl-10 px-4 py-3 border border-gray-300 rounded-xl"
+                                        placeholder="John Doe"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                    />
+                                </div>
+                            </motion.div>
+
                             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
                                 <div className="relative">

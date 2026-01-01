@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase'; // Added db import
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, ArrowRight, ArrowLeft, Quote } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const Login = () => {
+    // ... (state remains same)
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -17,14 +19,11 @@ const Login = () => {
     const showModalOnReturn = location.state?.showModalOnReturn || false;
     const { signInWithGoogle } = useAuth();
 
-    // Rotating Quotes Logic
+    // ... (quotes logic remains same)
     const quotes = [
         "Technology is best when it brings people together.",
-        // "Innovation distinguishes between a leader and a follower.",
         "The future belongs to those who believe in the beauty of their dreams.",
-        // "Code is like humor. When you have to explain it, it’s bad.",
     ];
-    // Select a random quote index once on mount
     const [currentQuoteIndex] = useState(Math.floor(Math.random() * quotes.length));
 
     const handleEmailLogin = async (e) => {
@@ -34,8 +33,7 @@ const Login = () => {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            const { doc, getDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            // Use imported getDoc/db instead of dynamic
             const userDoc = await getDoc(doc(db, "users", user.uid));
 
             toast.success("Welcome back!");
@@ -54,7 +52,7 @@ const Login = () => {
                     }
                 }
             } else {
-                navigate('/dashboard'); // Fallback if no user doc
+                navigate('/dashboard');
             }
         } catch (err) {
             console.error(err);
@@ -69,9 +67,7 @@ const Login = () => {
             const result = await signInWithGoogle();
             const user = result.user;
 
-            // Check role after Google Sign In
-            const { doc, getDoc, getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
+            // Use imported getDoc/db
             const userDoc = await getDoc(doc(db, "users", user.uid));
 
             toast.success("Signed in with Google!");
@@ -83,21 +79,14 @@ const Login = () => {
                 } else if (role === 'organizer') {
                     navigate('/organizer');
                 } else {
-                    if (from) {
-                        navigate(from);
-                    } else {
-                        navigate('/events');
-                    }
+                    navigate(from || '/events');
                 }
             } else {
-                if (from) {
-                    navigate(from);
-                } else {
-                    navigate('/events');
-                }
+                navigate(from || '/events');
             }
         } catch (error) {
-            toast.error("Google Sign In failed");
+            console.error(error);
+            toast.error("Google Sign In failed: " + error.message);
         }
     };
 
