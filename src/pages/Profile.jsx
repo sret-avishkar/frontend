@@ -298,55 +298,64 @@ const Profile = () => {
                                 </div>
 
                                 {/* Change Password Section - Only for Email/Password Users */}
-                                {currentUser?.providerData[0]?.providerId === 'password' && (
-                                    <div className="md:col-span-2 border-t border-gray-200 pt-6 mt-2">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                            <Lock size={18} /> Change Password
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                                                <input
-                                                    type="password"
-                                                    value={passwords.current}
-                                                    onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                                    placeholder="Current Password"
-                                                />
+                                {/* Change Password Section */}
+                                <div className="md:col-span-2 border-t border-gray-200 pt-6 mt-2">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <Lock size={18} /> Change Password
+                                    </h3>
+
+                                    {currentUser?.providerData[0]?.providerId === 'password' ? (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.current}
+                                                        onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                        placeholder="Current Password"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.new}
+                                                        onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                        placeholder="New Password"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New</label>
+                                                    <input
+                                                        type="password"
+                                                        value={passwords.confirm}
+                                                        onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                        placeholder="Confirm New Password"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                                                <input
-                                                    type="password"
-                                                    value={passwords.new}
-                                                    onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                                    placeholder="New Password"
-                                                />
+                                            <div className="mt-3 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={handlePasswordChange}
+                                                    disabled={passwordUpdating || !passwords.current || !passwords.new}
+                                                    className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {passwordUpdating ? 'Updating...' : 'Update Password'}
+                                                </button>
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New</label>
-                                                <input
-                                                    type="password"
-                                                    value={passwords.confirm}
-                                                    onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                                    placeholder="Confirm New Password"
-                                                />
-                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-sm">
+                                            You are signed in with <strong>{currentUser?.providerData[0]?.providerId === 'google.com' ? 'Google' : 'an external provider'}</strong>.
+                                            You manage your password through their security settings, not here.
                                         </div>
-                                        <div className="mt-3 text-right">
-                                            <button
-                                                type="button" // Important: type button so main form doesn't submit
-                                                onClick={handlePasswordChange}
-                                                disabled={passwordUpdating || !passwords.current || !passwords.new}
-                                                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {passwordUpdating ? 'Updating...' : 'Update Password'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
 
                                 {/* UPI ID (Organizer only) */}
                                 {userRole === 'organizer' && (
