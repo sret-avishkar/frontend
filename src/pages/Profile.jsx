@@ -117,6 +117,8 @@ const Profile = () => {
 
     const handlePasswordChange = async (e) => {
         e.preventDefault();
+        const isPasswordSet = currentUser?.providerData.some(p => p.providerId === 'password');
+
         if (passwords.new !== passwords.confirm) {
             return toast.error("New passwords do not match");
         }
@@ -126,20 +128,18 @@ const Profile = () => {
 
         setPasswordUpdating(true);
         try {
-            // Re-authenticate user (optional but recommended for sensitive actions)
-            // Ideally we ask for current password, but for simplicity we'll try update directly.
-            // If it fails with 'requires-recent-login', we'd need a re-auth flow.
-            // But let's assume we want to do it proper: ask for current password.
-
-            if (!passwords.current) {
-                return toast.error("Please enter current password");
+            // Only require re-auth if password provider exists
+            if (isPasswordSet) {
+                if (!passwords.current) {
+                    setPasswordUpdating(false);
+                    return toast.error("Please enter current password");
+                }
+                const credential = EmailAuthProvider.credential(currentUser.email, passwords.current);
+                await reauthenticateWithCredential(currentUser, credential);
             }
 
-            const credential = EmailAuthProvider.credential(currentUser.email, passwords.current);
-            await reauthenticateWithCredential(currentUser, credential);
-
             await updatePassword(currentUser, passwords.new);
-            toast.success("Password updated successfully");
+            toast.success(isPasswordSet ? "Password updated successfully" : "Password set successfully. You can now login with email.");
             setPasswords({ current: '', new: '', confirm: '' });
         } catch (error) {
             console.error("Password update error:", error);
