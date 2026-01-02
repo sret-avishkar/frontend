@@ -3,7 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Bell } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
+import { format } from 'date-fns';
 
 
 const Navbar = () => {
@@ -139,6 +141,24 @@ const Navbar = () => {
 
                         {currentUser ? (
                             <>
+                                {/* Notification Bell */}
+                                <div className="relative group mr-4">
+                                    <button className="flex items-center text-gray-300 hover:text-blue-400 transition-colors focus:outline-none relative">
+                                        <Bell size={20} />
+                                        {/* Badge for unread count */}
+                                        <NotificationBadge />
+                                    </button>
+
+                                    {/* Notification Dropdown */}
+                                    <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 max-h-96 overflow-y-auto">
+                                        <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center bg-black/50 sticky top-0 backdrop-blur-md">
+                                            <span className="text-sm font-semibold text-white">Notifications</span>
+                                            <MarkAllReadButton />
+                                        </div>
+                                        <NotificationList />
+                                    </div>
+                                </div>
+
                                 <div className="relative group">
                                     <button
                                         className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-colors focus:outline-none"
@@ -263,3 +283,59 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+const NotificationBadge = () => {
+    const { unreadCount } = useNotifications();
+    if (unreadCount === 0) return null;
+    return (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] flex justify-center items-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+    );
+};
+
+const MarkAllReadButton = () => {
+    const { markAllAsRead, unreadCount } = useNotifications();
+    if (unreadCount === 0) return null;
+    return (
+        <button
+            onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
+            className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer"
+        >
+            Mark all read
+        </button>
+    );
+};
+
+const NotificationList = () => {
+    const { notifications, markAsRead } = useNotifications();
+
+    if (notifications.length === 0) {
+        return <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>;
+    }
+
+    return (
+        <div className="divide-y divide-white/10">
+            {notifications.map((notif) => (
+                <div
+                    key={notif.id}
+                    className={`px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer ${!notif.read ? 'bg-blue-500/10' : ''}`}
+                    onClick={() => markAsRead(notif.id)}
+                >
+                    <div className="flex justify-between items-start mb-1">
+                        <h4 className={`text-sm font-medium ${!notif.read ? 'text-blue-200' : 'text-gray-300'}`}>
+                            {notif.title}
+                        </h4>
+                        {notif.createdAt && (
+                            <span className="text-[10px] text-gray-500 whitespace-nowrap ml-2">
+                                {/* Formatting timestamp if it exists. Firestore timestamp needs handling */}
+                                {notif.createdAt?.toDate ? format(notif.createdAt.toDate(), 'MMM d, h:mm a') : ''}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-xs text-gray-400 line-clamp-2">{notif.body}</p>
+                </div>
+            ))}
+        </div>
+    );
+};
