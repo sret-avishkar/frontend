@@ -265,20 +265,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                 <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
 
                                 {organizerDetails.upiId && (
-                                    <p className="text-sm text-gray-700 mb-2">
-                                        UPI ID: {' '}
-                                        <a
-                                            href={`upi://pay?pa=${organizerDetails.upiId.trim()}
-&pn=${encodeURIComponent(organizerDetails.name || 'Organizer')}
-&am=${Number(event.price)}
-&cu=INR
-&tn=Payment
-&mode=02`}
-                                            className="font-mono bg-blue-50 text-blue-600 px-2 py-1 rounded select-all hover:bg-blue-100 cursor-pointer transition-colors"
-                                        >
-                                            {organizerDetails.upiId}
-                                        </a>
-                                    </p>
+                                    <p className="text-sm text-gray-700 mb-2">UPI ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded select-all">{organizerDetails.upiId}</span></p>
                                 )}
 
                                 {event.paymentQrCodeUrl && (
