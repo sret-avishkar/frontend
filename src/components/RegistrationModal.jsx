@@ -272,7 +272,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
 &pn=${encodeURIComponent(organizerDetails.name || 'Organizer')}
 &am=${Number(event.price)}
 &cu=INR
-&tn=${encodeURIComponent(event.title)}
+&tn=Payment
 &mode=02`}
                                             className="font-mono bg-blue-50 text-blue-600 px-2 py-1 rounded select-all hover:bg-blue-100 cursor-pointer transition-colors"
                                         >
