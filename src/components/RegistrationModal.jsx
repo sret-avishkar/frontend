@@ -268,11 +268,13 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                     <p className="text-sm text-gray-700 mb-2">
                                         UPI ID: {' '}
                                         <a
-                                            href={`upi://pay?pa=${organizerDetails.upiId}&pn=${encodeURIComponent(organizerDetails.name || 'Organizer')}&tn=${encodeURIComponent(event.title)}&am=${event.price}&cu=INR`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            href={`upi://pay?pa=${organizerDetails.upiId.trim()}
+&pn=${encodeURIComponent(organizerDetails.name || 'Organizer')}
+&am=${Number(event.price)}
+&cu=INR
+&tn=${encodeURIComponent(event.title)}
+&mode=02`}
                                             className="font-mono bg-blue-50 text-blue-600 px-2 py-1 rounded select-all hover:bg-blue-100 cursor-pointer transition-colors"
-                                            title="Click to pay via UPI app"
                                         >
                                             {organizerDetails.upiId}
                                         </a>
