@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 const EventParticipants = () => {
     const { eventId } = useParams();
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, userRole } = useAuth();
     const [participants, setParticipants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [eventTitle, setEventTitle] = useState('');
@@ -62,7 +62,6 @@ const EventParticipants = () => {
                     access = 'none';
                 }
 
-                console.log(`Access determined: ${access}, Dept: ${dept}`);
                 setViewAccess(access);
 
                 // Fetch Participants
