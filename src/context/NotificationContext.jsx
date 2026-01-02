@@ -77,11 +77,12 @@ export const NotificationProvider = ({ children }) => {
     useEffect(() => {
         if (!currentUser) return;
 
+        let unsubscribe;
         try {
             const messaging = getMessaging();
-            onMessage(messaging, (payload) => {
+            unsubscribe = onMessage(messaging, (payload) => {
                 console.log('[NotificationContext] Foreground Message received: ', payload);
-                toast.success(payload.notification.body, { // Using toast.success for visibility
+                toast.success(payload.notification.body, {
                     duration: 5000,
                     icon: '🔔',
                     style: {
@@ -94,6 +95,10 @@ export const NotificationProvider = ({ children }) => {
         } catch (err) {
             console.error("FCM Foreground listener error", err);
         }
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, [currentUser]);
 
 
