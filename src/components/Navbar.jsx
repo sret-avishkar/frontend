@@ -309,6 +309,7 @@ const MarkAllReadButton = () => {
 
 const NotificationList = () => {
     const { notifications, markAsRead } = useNotifications();
+    const navigate = useNavigate();
 
     if (notifications.length === 0) {
         return <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>;
@@ -320,7 +321,12 @@ const NotificationList = () => {
                 <div
                     key={notif.id}
                     className={`px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer ${!notif.read ? 'bg-blue-500/10' : ''}`}
-                    onClick={() => markAsRead(notif.id)}
+                    onClick={() => {
+                        markAsRead(notif.id);
+                        if (notif.url) {
+                            navigate(notif.url);
+                        }
+                    }}
                 >
                     <div className="flex justify-between items-start mb-1">
                         <h4 className={`text-sm font-medium ${!notif.read ? 'text-blue-200' : 'text-gray-300'}`}>
