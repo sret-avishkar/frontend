@@ -15,14 +15,25 @@ import { useAuth } from '../../context/AuthContext';
 import { DashboardSkeleton } from '../../components/Skeleton';
 
 const AdminDashboard = () => {
-    const { userRole, loading } = useAuth();
+    const { userRole, loading, currentUser } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     if (loading) return <DashboardSkeleton />;
 
-    if (userRole !== 'admin') {
+    // If we have a user but no role yet, wait.
+    if (currentUser && !userRole) {
+        return <DashboardSkeleton />;
+    }
+
+    // STRICT CHECK: Only redirect if we are SURE the role is NOT admin.
+    // If userRole is 'participant' or 'organizer', then redirect.
+    if (userRole && userRole !== 'admin') {
         return <Navigate to="/dashboard" />;
     }
+
+    // Double safety: If for some reason we fell through but role isn't admin (e.g. empty string), wait or redirect?
+    // Let's assume if we passed the above, it's either admin or we are waiting.
+    if (userRole !== 'admin') return <DashboardSkeleton />;
 
     return (
         <div className="flex min-h-screen bg-gray-100">

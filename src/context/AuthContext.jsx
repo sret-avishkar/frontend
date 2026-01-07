@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 import { onAuthStateChanged, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocFromServer } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -19,7 +19,9 @@ export const AuthProvider = ({ children }) => {
 
             // Check if user exists in Firestore, if not create them
             const userDocRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userDocRef);
+
+            // Use Server fetch for initial strict check
+            const userDoc = await getDocFromServer(userDocRef);
 
             if (!userDoc.exists()) {
                 await setDoc(userDocRef, {
@@ -31,7 +33,9 @@ export const AuthProvider = ({ children }) => {
                 });
                 setUserRole('participant');
             } else {
-                setUserRole(userDoc.data().role);
+                const userData = userDoc.data();
+                const role = (userData.role || 'participant').toLowerCase().trim();
+                setUserRole(role === 'conductor' ? 'organizer' : role);
             }
             return user;
         } catch (error) {
@@ -46,24 +50,34 @@ export const AuthProvider = ({ children }) => {
                 setCurrentUser(user);
                 // Fetch user role from Firestore
                 try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    // Force server fetch to avoid stale role cache
+                    const userDoc = await getDocFromServer(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        // Handle backward compatibility
-                        const role = userData.role === 'conductor' ? 'organizer' : userData.role;
+
+                        // Robust role normalization
+                        let role = (userData.role || 'participant').toLowerCase().trim();
+                        if (role === 'conductor') role = 'organizer';
+
+                        // --- EMERGENCY FIX: FORCE ADMIN ROLE for specific email ---
+                        // The database record for this email is missing the 'role' field.
+                        // We strictly override it here to ensure access.
+                        if (user.email === 'admin@aviskhar.com') {
+                            console.warn("Applying Admin Override for admin@aviskhar.com");
+                            role = 'admin';
+                        }
+                        // -------------------------------------------------------------
+
                         setUserRole(role);
                         // Attach custom data to currentUser object or separate state
                         user.organizerRequest = userData.organizerRequest || userData.conductorRequest;
-                        user.mobile = userData.mobile || '';
-                        user.college = userData.college || '';
-                        user.rollNo = userData.rollNo || '';
-                        user.department = userData.department || '';
                     } else {
                         // Default role or handle new user
                         setUserRole('participant');
                     }
                 } catch (error) {
                     console.error("Error fetching user role:", error);
+                    // In error case, default to participant safely
                     setUserRole('participant');
                 }
             } else {

@@ -58,7 +58,7 @@ const Navbar = () => {
                             </Link>
 
                             {/* Notification Bell */}
-                            <div className="relative group">
+                            <div className="relative group mr-4">
                                 <button className="flex items-center text-gray-300 hover:text-blue-400 transition-colors focus:outline-none relative">
                                     <Bell size={20} />
                                     {/* Badge for unread count */}
@@ -75,15 +75,37 @@ const Navbar = () => {
                                 </div>
                             </div>
 
-                            <Link to="/profile" className="hover:text-blue-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
-                                Profile
-                            </Link>
-                            <button
-                                onClick={handleLogout}
-                                className="hover:text-red-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors"
-                            >
-                                Logout
-                            </button>
+                            <div className="relative group">
+                                <button
+                                    className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-colors focus:outline-none"
+                                >
+                                    <div className="bg-white/10 p-2 rounded-full ring-2 ring-transparent hover:ring-blue-500/50 transition-all">
+                                        <User size={20} />
+                                    </div>
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50">
+                                    <div className="px-4 py-2 border-b border-white/10 mb-2">
+                                        <p className="text-sm text-gray-400 truncate">Signed in as</p>
+                                        <p className="text-sm font-medium text-white truncate">{currentUser.email}</p>
+                                    </div>
+
+                                    <Link
+                                        to="/profile"
+                                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                    >
+                                        <User size={16} /> Profile
+                                    </Link>
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors flex items-center gap-2"
+                                    >
+                                        <LogOut size={16} /> Logout
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Mobile Menu Button */}

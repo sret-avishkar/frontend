@@ -45,9 +45,17 @@ const OrganizerDashboard = () => {
         setShowCreateModal(true);
     };
 
-    if (!currentUser || userRole !== 'organizer') {
+    if (!currentUser || (currentUser && !userRole)) {
+        return <DashboardSkeleton />;
+    }
+
+    // STRICT CHECK: Only redirect if we are SURE the role is NOT organizer.
+    if (userRole && userRole !== 'organizer') {
         return <div className="p-8 text-center">Access Denied. Organizer privileges required.</div>;
     }
+
+    // Safety check
+    if (userRole !== 'organizer') return <DashboardSkeleton />;
 
     if (loading) {
         return <DashboardSkeleton />;

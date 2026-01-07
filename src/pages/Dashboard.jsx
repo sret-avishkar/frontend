@@ -93,19 +93,22 @@ const Dashboard = () => {
 
     // Redirect Admin/Organizer
     if (userRole === 'admin') {
-        window.location.href = '/admin';
-        return null;
+        const timer = setTimeout(() => navigate('/admin'), 100);
+        return () => clearTimeout(timer);
     }
     if (userRole === 'organizer') {
-        window.location.href = '/organizer';
-        return null;
+        const timer = setTimeout(() => navigate('/organizer'), 100);
+        return () => clearTimeout(timer);
     }
 
     // Redirect Pending Approval
     if (currentUser?.organizerRequest && userRole !== 'organizer') {
-        window.location.href = '/pending-approval';
-        return null;
+        const timer = setTimeout(() => navigate('/pending-approval'), 100);
+        return () => clearTimeout(timer);
     }
+
+    // If we are redirecting, return null or a loader?
+    if (userRole === 'admin' || userRole === 'organizer') return <div className="p-8 text-center">Redirecting...</div>;
 
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -161,55 +164,74 @@ const Dashboard = () => {
                         <p className="text-gray-500">No events found.</p>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {events.map((event) => {
-                                const registered = myRegistrations.find(r => r.eventId === event.id || r.eventTitle === event.title);
-                                return (
-                                    <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
-                                        <img
-                                            src={event.imageUrl || 'https://via.placeholder.com/400x200'}
-                                            alt={event.title}
-                                            className="w-full h-48 object-cover cursor-pointer"
-                                            onClick={() => navigate(`/events/${event.id}`)}
-                                        />
-                                        <div className="p-6 flex-grow flex flex-col">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
-                                                    {event.category}
-                                                </span>
-                                                <span className="text-green-600 font-bold">₹{event.price}</span>
-                                            </div>
-                                            <h3 className="text-xl font-bold mb-2 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/events/${event.id}`)}>{event.title}</h3>
-                                            <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{event.description}</p>
-                                            <div className="text-sm text-gray-500 mb-4">
-                                                <p>📅 {new Date(event.date).toLocaleDateString()}</p>
-                                                <p>📍 {event.venue}</p>
-                                            </div>
+                            {events
+                                .filter(event => {
+                                    // Filter out completed events (past date)
+                                    // Handle Firestore Timestamp or String
+                                    let eventDate;
+                                    if (event.date && typeof event.date.toDate === 'function') {
+                                        eventDate = event.date.toDate();
+                                    } else {
+                                        eventDate = new Date(event.date);
+                                    }
 
-                                            <div className="mt-auto space-y-2">
-                                                {registered && (registered.status === 'confirmed' || registered.status === 'approved' || registered.status === 'paid') ? (
-                                                    <button
-                                                        onClick={() => handleShowQR(event)}
-                                                        className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
-                                                    >
-                                                        <QrCode size={18} /> View Entry QR
-                                                    </button>
-                                                ) : registered ? (
-                                                    <div className="w-full bg-yellow-100 text-yellow-800 py-2 rounded-md text-center text-sm font-medium border border-yellow-200">
-                                                        Registration Pending / In Review
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleRegister(event.id)}
-                                                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
-                                                    >
-                                                        View & Register
-                                                    </button>
-                                                )}
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+
+                                    // If invalid date, keep it safe (or hide it? Let's hide invalid dates to avoid glitches)
+                                    if (isNaN(eventDate.getTime())) return false;
+
+                                    return eventDate >= today;
+                                })
+                                .map((event) => {
+                                    const registered = myRegistrations.find(r => r.eventId === event.id || r.eventTitle === event.title);
+                                    return (
+                                        <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+                                            <img
+                                                src={event.imageUrl || 'https://via.placeholder.com/400x200'}
+                                                alt={event.title}
+                                                className="w-full h-48 object-cover cursor-pointer"
+                                                onClick={() => navigate(`/events/${event.id}`)}
+                                            />
+                                            <div className="p-6 flex-grow flex flex-col">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full capitalize">
+                                                        {event.category}
+                                                    </span>
+                                                    <span className="text-green-600 font-bold">₹{event.price}</span>
+                                                </div>
+                                                <h3 className="text-xl font-bold mb-2 cursor-pointer hover:text-blue-600" onClick={() => navigate(`/events/${event.id}`)}>{event.title}</h3>
+                                                <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{event.description}</p>
+                                                <div className="text-sm text-gray-500 mb-4">
+                                                    <p>📅 {new Date(event.date).toLocaleDateString()}</p>
+                                                    <p>📍 {event.venue}</p>
+                                                </div>
+
+                                                <div className="mt-auto space-y-2">
+                                                    {registered && (registered.status === 'confirmed' || registered.status === 'approved' || registered.status === 'paid') ? (
+                                                        <button
+                                                            onClick={() => handleShowQR(event)}
+                                                            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
+                                                        >
+                                                            <QrCode size={18} /> View Entry QR
+                                                        </button>
+                                                    ) : registered ? (
+                                                        <div className="w-full bg-yellow-100 text-yellow-800 py-2 rounded-md text-center text-sm font-medium border border-yellow-200">
+                                                            Registration Pending / In Review
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleRegister(event.id)}
+                                                            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+                                                        >
+                                                            View & Register
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
                         </div>
                     )}
                 </div>
