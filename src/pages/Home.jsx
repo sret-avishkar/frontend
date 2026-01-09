@@ -114,11 +114,20 @@ const Home = () => {
     today.setHours(0, 0, 0, 0);
 
     const upcomingEvents = useMemo(() => {
+        if (!Array.isArray(events)) return [];
         return events.filter(e => {
-            const eventDate = new Date(e.date);
+            // Handle Firestore Timestamp
+            let eventDate;
+            if (e.date && typeof e.date.toDate === 'function') {
+                eventDate = e.date.toDate();
+            } else {
+                eventDate = new Date(e.date);
+            }
+            if (isNaN(eventDate.getTime())) return false; // Invalid date
+
             return eventDate >= today;
         });
-    }, [events]);
+    }, [events, today]);
 
 
     const technicalEvents = useMemo(
