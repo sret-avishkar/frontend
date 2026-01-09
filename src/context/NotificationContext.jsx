@@ -128,7 +128,7 @@ export const NotificationProvider = ({ children }) => {
                 ...doc.data()
             }));
             setNotifications(notifs);
-            setUnreadCount(notifs.filter(n => !n.read).length);
+            setUnreadCount(Array.isArray(notifs) ? notifs.filter(n => !n.read).length : 0);
         }, (error) => {
             console.error("Notification listener error:", error);
         });
@@ -150,6 +150,7 @@ export const NotificationProvider = ({ children }) => {
     };
 
     const markAllAsRead = async () => {
+        if (!Array.isArray(notifications)) return;
         const unreadNotifications = notifications.filter(n => !n.read);
         const batch = []; // Firestore batch would be better here but let's do simple updates for now
         // Or actually, batch writes are better
