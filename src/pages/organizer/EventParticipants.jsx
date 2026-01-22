@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Users, CheckCircle, XCircle, Clock, Download, ExternalLink, Search } from 'lucide-react';
+import { ArrowLeft, User, Users, CheckCircle, XCircle, Clock, Download, ExternalLink, Search, FileCheck } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -17,6 +17,7 @@ const EventParticipants = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [viewAccess, setViewAccess] = useState('loading'); // 'all', 'specific', 'none', 'loading'
     const [assignedDepartment, setAssignedDepartment] = useState(null);
+    const [isPaperEvent, setIsPaperEvent] = useState(false);
 
     useEffect(() => {
         const fetchParticipants = async () => {
@@ -25,8 +26,10 @@ const EventParticipants = () => {
                 const eventResponse = await api.get(`/events/${eventId}`);
                 const eventData = eventResponse.data;
                 const baseTitle = eventData.title;
+                setIsPaperEvent(eventData.isPaperPresentation);
 
                 console.log("CurrentUser:", currentUser);
+                // ... (rest of logic)
 
                 let access = 'none';
                 let dept = null;
@@ -93,6 +96,19 @@ const EventParticipants = () => {
         }
     };
 
+    const handlePaperStatusUpdate = async (id, newStatus) => {
+        try {
+            await api.put(`/registrations/${id}/paper-status`, { paperStatus: newStatus });
+            setParticipants(prev =>
+                prev.map(p => p.id === id ? { ...p, paperStatus: newStatus } : p)
+            );
+            toast.success(`Paper ${newStatus}`);
+        } catch (err) {
+            console.error("Failed to update paper status", err);
+            toast.error("Failed to update paper status");
+        }
+    };
+
     const filteredParticipants = Array.isArray(participants) ? participants.filter(p => {
         if (viewAccess === 'none') return false;
 
@@ -134,6 +150,14 @@ const EventParticipants = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Participants: {eventTitle}</h1>
                         <p className="text-gray-500 mt-1">Total Registrations: {participants.length}</p>
                     </div>
+                    {isPaperEvent && (
+                        <button
+                            onClick={() => navigate(`/organizer/events/${eventId}/papers`)}
+                            className="mt-4 md:mt-0 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2 shadow-sm"
+                        >
+                            <FileCheck size={18} /> Review Papers
+                        </button>
+                    )}
                 </div>
 
                 {/* Filters */}
@@ -150,7 +174,7 @@ const EventParticipants = () => {
                     </div>
 
                     <div className="flex gap-2">
-                        {['all', 'pending', 'approved', 'rejected'].map(status => (
+                        {['all', 'pending', 'confirmed', 'rejected'].map(status => (
                             <button
                                 key={status}
                                 onClick={() => setFilter(status)}
@@ -173,7 +197,7 @@ const EventParticipants = () => {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                                    {isPaperEvent && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paper Info</th>}
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -182,7 +206,7 @@ const EventParticipants = () => {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredParticipants.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={isPaperEvent ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
                                             No participants found matching your criteria.
                                         </td>
                                     </tr>
@@ -203,30 +227,43 @@ const EventParticipants = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="text-sm text-gray-900">{p.rollNo || 'N/A'}</div>
-                                                <div className="text-sm text-gray-500">{p.department || 'N/A'}</div>
+                                                <div className="text-sm text-gray-500 capitalize">{p.department || 'N/A'}</div>
                                                 <div className="text-xs text-gray-400 mt-1">{p.college}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {p.teamMembers && p.teamMembers.length > 0 ? (
-                                                    <div className="max-w-xs">
-                                                        <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">
-                                                            {p.teamMembers.length} Members
-                                                        </div>
-                                                        <ul className="text-sm text-gray-600 space-y-2">
-                                                            {p.teamMembers.map((tm, idx) => (
-                                                                <li key={idx} className="flex flex-col border-b border-gray-100 last:border-0 pb-1 last:pb-0">
-                                                                    <span className="font-medium text-gray-800">{tm.name}</span>
-                                                                    <span className="text-xs text-gray-500">Roll: {tm.rollNo} | Dept: {tm.department}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
+                                                {p.teamMembers && p.teamMembers.length > 0 && (
+                                                    <div className="mt-1">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                            + {p.teamMembers.length} Team
+                                                        </span>
                                                     </div>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                        Individual
-                                                    </span>
                                                 )}
                                             </td>
+
+                                            {/* Paper Column */}
+                                            {isPaperEvent && (
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-2 items-start">
+                                                        {p.paperUrl ? (
+                                                            <a
+                                                                href={p.paperUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-600 hover:text-blue-800 text-xs flex items-center"
+                                                            >
+                                                                <Download size={14} className="mr-1" /> View Paper
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">No Paper</span>
+                                                        )}
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.paperStatus === 'accepted' ? 'bg-green-100 text-green-800' :
+                                                            p.paperStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                            }`}>
+                                                            {p.paperStatus ? (p.paperStatus.charAt(0).toUpperCase() + p.paperStatus.slice(1)) : 'Pending'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            )}
+
                                             <td className="px-6 py-4">
                                                 {p.paymentScreenshotUrl ? (
                                                     <a
@@ -243,34 +280,36 @@ const EventParticipants = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                    p.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                                        'bg-yellow-100 text-yellow-800'
+                                                    p.status === 'confirmed' ? 'bg-green-100 text-green-800' : // Confirmed also Green
+                                                        p.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                {p.status === 'pending' ? (
+                                                {/* Only Payment Actions Here */}
+                                                {(p.status === 'pending') ? (
                                                     <div className="flex gap-2">
                                                         <button
-                                                            onClick={() => handleStatusUpdate(p.id, 'approved')}
+                                                            onClick={() => handleStatusUpdate(p.id, p.paymentScreenshotUrl ? 'confirmed' : 'approved')}
                                                             className="text-green-600 hover:text-green-900 bg-green-50 p-2 rounded-full hover:bg-green-100 transition-colors"
-                                                            title="Approve"
+                                                            title={p.paymentScreenshotUrl ? "Verify Payment & Confirm" : "Approve Info & Allow Payment"}
                                                         >
                                                             <CheckCircle size={20} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleStatusUpdate(p.id, 'rejected')}
                                                             className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-full hover:bg-red-100 transition-colors"
-                                                            title="Reject"
+                                                            title="Reject Registration"
                                                         >
                                                             <XCircle size={20} />
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-gray-500 italic">
-                                                        {p.status === 'approved' ? 'Approved' : 'Rejected'}
-                                                    </div>
+                                                    <span className="text-xs text-gray-500">
+                                                        {p.status === 'confirmed' ? 'Verified' : p.status === 'approved' && isPaperEvent ? 'Awaiting Pay' : '--'}
+                                                    </span>
                                                 )}
                                             </td>
                                         </tr>

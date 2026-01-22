@@ -3,6 +3,7 @@ import { db } from '../firebase';
 import { collection, query, where, orderBy, limit, onSnapshot, updateDoc, doc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const NotificationContext = createContext();
@@ -24,7 +25,7 @@ export const NotificationProvider = ({ children }) => {
                 const permission = await Notification.requestPermission();
 
                 if (permission === 'granted') {
-                    console.log('Notification permission granted.');
+                    // console.log('Notification permission granted.');
 
                     const messaging = getMessaging();
 
@@ -115,6 +116,10 @@ export const NotificationProvider = ({ children }) => {
             return;
         }
 
+        // Trigger Cleanup on mount/user change
+        api.post(`/users/${currentUser.uid}/notifications/cleanup`)
+            .catch(err => console.error("Notification cleanup failed", err));
+
         const q = query(
             collection(db, 'notifications'),
             where('userId', '==', currentUser.uid),
@@ -173,7 +178,7 @@ export const NotificationProvider = ({ children }) => {
                 fcmTokens: arrayRemove(fcmToken)
             });
             setFcmToken(null);
-            console.log("FCM Token removed from Firestore on logout.");
+            // console.log("FCM Token removed from Firestore on logout.");
         } catch (error) {
             console.error("Error removing FCM token:", error);
         }

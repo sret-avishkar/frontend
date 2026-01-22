@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RegistrationModal from '../components/RegistrationModal';
+import PaymentModal from '../components/PaymentModal';
 import { ArrowLeft, Calendar, MapPin, Tag, Clock, QrCode, X, Image as ImageIcon, Trash2, Plus, Upload, User, Trophy, Medal, Award, Users, Edit } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { DetailSkeleton } from '../components/Skeleton';
@@ -19,6 +20,7 @@ const EventDetails = () => {
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [deadline, setDeadline] = useState(null);
@@ -111,6 +113,8 @@ const EventDetails = () => {
     const availableSlots = event.slots
         ? event.slots - (event.registeredCount || 0)
         : null;
+
+    const isPaperPresentation = event.isPaperPresentation;
 
     const handleRegisterClick = () => {
         if (isRegistrationClosed || isSlotsFull || isRegistered || isEventCompleted) return;
@@ -505,7 +509,7 @@ const EventDetails = () => {
                                 {(!currentUser || (userRole !== 'admin' && userRole !== 'organizer')) ? (
                                     <div className="flex flex-col gap-4">
                                         {isRegistered ? (
-                                            (registrationData.status === 'approved' || registrationData.status === 'confirmed' || registrationData.status === 'paid') ? (
+                                            (registrationData.status === 'confirmed') ? (
                                                 <button
                                                     onClick={() => setShowQRModal(true)}
                                                     className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 hover:border-green-300 transition-all duration-300 flex items-center justify-center gap-2"
@@ -513,9 +517,31 @@ const EventDetails = () => {
                                                     <QrCode size={20} /> View Entry Pass
                                                 </button>
                                             ) : (
-                                                <div className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-yellow-100 text-yellow-700 border border-yellow-200 text-center">
-                                                    Payment Status: {registrationData.status}
-                                                </div>
+                                                // Pay Now Button Logic
+                                                ((registrationData.status === 'approved' ||
+                                                    (isPaperPresentation && registrationData.paperStatus === 'accepted')) && !registrationData.paymentScreenshotUrl) ? (
+                                                    <button
+                                                        onClick={() => setShowPaymentModal(true)}
+                                                        className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 animate-bounce-short"
+                                                    >
+                                                        {isPaperPresentation ? 'Paper Accepted! Pay Now' : 'Pay Now to Confirm Seat'}
+                                                    </button>
+                                                ) : (
+                                                    // Status Display Logic
+                                                    <div className={`px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto border text-center ${(registrationData.paymentScreenshotUrl) ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                        (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'bg-orange-100 text-orange-700 border-orange-200' :
+                                                            (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'bg-red-100 text-red-700 border-red-200' :
+                                                                'bg-gray-100 text-gray-700 border-gray-200'
+                                                        }`}>
+                                                        {
+                                                            (registrationData.paymentScreenshotUrl) ? 'Payment Verification Pending' :
+                                                                (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'Paper Under Review' :
+                                                                    (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'Paper Rejected' :
+                                                                        registrationData.status === 'pending' ? 'Pending Approval' :
+                                                                            `Status: ${registrationData.status}`
+                                                        }
+                                                    </div>
+                                                )
                                             )
                                         ) : null}
 
@@ -556,6 +582,18 @@ const EventDetails = () => {
                         onRegistrationSuccess={() => {
                             setShowModal(false);
                             // Refresh page or state to show updated status
+                            window.location.reload();
+                        }}
+                    />
+                )}
+
+                {showPaymentModal && registrationData && (
+                    <PaymentModal
+                        registration={registrationData}
+                        event={event}
+                        onClose={() => setShowPaymentModal(false)}
+                        onPaymentSuccess={() => {
+                            setShowPaymentModal(false);
                             window.location.reload();
                         }}
                     />

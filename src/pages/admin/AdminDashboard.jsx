@@ -61,14 +61,14 @@ const AdminDashboard = () => {
             {/* Main Content */}
             <div className="flex-1 p-4 md:p-8 md:ml-64 mt-16 md:mt-0 transition-all duration-300">
                 <Routes>
-                    <Route path="/" element={<AdminOverview />} />
-                    <Route path="/events" element={<AdminEvents />} />
-                    <Route path="/approvals" element={<AdminApprovals />} />
-                    <Route path="/attendance" element={<AdminAttendance />} />
-                    <Route path="/participants" element={<AdminParticipants />} />
-                    <Route path="/users" element={<AdminUsers />} />
-                    {/* <Route path="/gallery" element={<AdminGallery />} /> */}
-                    <Route path="/settings" element={<AdminSettings />} />
+                    <Route index element={<AdminOverview />} />
+                    <Route path="events" element={<AdminEvents />} />
+                    <Route path="approvals" element={<AdminApprovals />} />
+                    <Route path="attendance" element={<AdminAttendance />} />
+                    <Route path="participants" element={<AdminParticipants />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    {/* <Route path="gallery" element={<AdminGallery />} /> */}
+                    <Route path="settings" element={<AdminSettings />} />
                 </Routes>
             </div>
         </div>

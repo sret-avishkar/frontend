@@ -12,6 +12,7 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
         date: '',
         venue: '',
         category: 'technical',
+        isPaperPresentation: false,
         price: '',
         imageUrl: '',
         assignedTo: '',
@@ -38,6 +39,7 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                 date: initialData.date || '',
                 venue: initialData.venue || '',
                 category: initialData.category || 'technical',
+                isPaperPresentation: initialData.isPaperPresentation || false,
                 price: initialData.price || '',
                 imageUrl: initialData.imageUrl || '',
                 assignedTo: initialData.assignedTo || '',
@@ -244,6 +246,19 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                             <option value="cultural">Cultural</option>
                             <option value="spot">Spot Event</option>
                         </select>
+                        <div className="mt-2 flex items-center">
+                            <input
+                                type="checkbox"
+                                id="isPaperPresentation"
+                                name="isPaperPresentation"
+                                checked={formData.isPaperPresentation}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="isPaperPresentation" className="ml-2 block text-sm text-gray-900">
+                                Is this a Paper Presentation event?
+                            </label>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Venue</label>

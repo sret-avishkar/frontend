@@ -194,7 +194,7 @@ const Dashboard = () => {
                                                 </div>
 
                                                 <div className="mt-auto space-y-2">
-                                                    {registered && (registered.status === 'confirmed' || registered.status === 'approved' || registered.status === 'paid') ? (
+                                                    {registered && (registered.status === 'confirmed') ? (
                                                         <button
                                                             onClick={() => handleShowQR(event)}
                                                             className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"

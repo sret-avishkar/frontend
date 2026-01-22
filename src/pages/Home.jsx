@@ -202,12 +202,14 @@ const Home = () => {
                                 muted
                                 playsInline
                                 className="absolute inset-0 w-full h-full object-cover opacity-70 md:hidden"
+                            // className="absolute inset-0 w-full h-full object-cover opacity-70 md"
                             >
                                 <source src="/assets/videos/background.mp4" type="video/mp4" />
                             </video>
 
                             {/* Desktop Background - Slideshow */}
                             <div className="hidden md:block absolute inset-0 w-full h-full">
+                                {/* <div className="hidden absolute inset-0 w-full h-full"> */}
                                 {heroImages.map((img, index) => (
                                     <img
                                         key={index}

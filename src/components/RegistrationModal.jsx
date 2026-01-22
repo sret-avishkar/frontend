@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload } from 'lucide-react';
 import ImageUploader from './ImageUploader';
+import FileUploader from './FileUploader';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +13,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
     const [department, setDepartment] = useState(currentUser?.department || '');
     const [teamMembers, setTeamMembers] = useState([]);
     const [paymentScreenshotUrl, setPaymentScreenshotUrl] = useState('');
+    const [paperUrl, setPaperUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [organizerDetails, setOrganizerDetails] = useState({});
@@ -68,6 +70,8 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
         setError('');
 
         try {
+            const isPaperPresentation = event.isPaperPresentation;
+
             await api.post('/registrations', {
                 userId: currentUser.uid,
                 eventId: event.id,
@@ -78,12 +82,13 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                 email: currentUser.email,
                 name: currentUser.displayName || 'Participant',
                 teamMembers,
-                paymentScreenshotUrl,
-                status: 'pending' // Default status until organizer approves
+                paymentScreenshotUrl: isPaperPresentation ? '' : paymentScreenshotUrl,
+                paperUrl: isPaperPresentation ? paperUrl : '',
+                status: 'pending' // Always pending initially. Paper status handled separately by backend.
             });
             onRegistrationSuccess();
             onClose();
-            alert('Registration submitted! Please wait for organizer approval.');
+            alert(isPaperPresentation ? 'Paper submitted! Wait for approval.' : 'Registration submitted! Please wait for organizer approval.');
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || 'Registration failed');
@@ -91,6 +96,8 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
             setLoading(false);
         }
     };
+
+    const isPaperPresentation = event.isPaperPresentation;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -104,7 +111,11 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
 
                 <div className="p-6">
                     <h2 className="text-2xl font-bold mb-4 text-gray-900">Register for {event.title}</h2>
-                    <p className="text-gray-700 mb-6">Please provide your contact details for venue coordination.</p>
+                    <p className="text-gray-700 mb-6 flex flex-col gap-1">
+                        {isPaperPresentation
+                            ? "Please upload your paper for review."
+                            : "Please provide your contact details for venue coordination."}
+                    </p>
 
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
@@ -253,45 +264,63 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                             </div>
                         )}
 
-                        {/* Payment Section */}
-                        {(parseInt(event.price) > 0) && (
+                        {/* Conditional Section: Payment or Paper Upload */}
+                        {isPaperPresentation ? (
                             <div className="border-t pt-4">
-                                <h3 className="font-semibold mb-2">Organizer Details</h3>
-                                {organizerDetails.name && <p className="text-sm text-gray-700 mb-1">Name: <span className="font-medium">{organizerDetails.name}</span></p>}
-                                {organizerDetails.email && <p className="text-sm text-gray-700 mb-1">Email: <span className="font-medium">{organizerDetails.email}</span></p>}
-                                {organizerDetails.mobile && <p className="text-sm text-gray-700 mb-1">Mobile: <span className="font-medium">{organizerDetails.mobile}</span></p>}
-
-                                <h3 className="font-semibold mb-2 mt-4">Payment Details</h3>
-                                <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
-
-                                {organizerDetails.upiId && (
-                                    <p className="text-sm text-gray-700 mb-2">UPI ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded select-all">{organizerDetails.upiId}</span></p>
-                                )}
-
-                                {event.paymentQrCodeUrl && (
-                                    <div className="flex justify-center mb-4">
-                                        <img src={event.paymentQrCodeUrl} alt="Payment QR Code" className="w-48 h-48 object-contain border rounded-lg" />
-                                    </div>
-                                )}
-
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
-                                    <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
-                                    {paymentScreenshotUrl && (
-                                        <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
-                                            <Upload size={14} /> Screenshot uploaded!
-                                        </p>
-                                    )}
-                                </div>
+                                <h3 className="font-semibold mb-2">Paper Submission</h3>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Upload your paper (PDF/Doc) for review.
+                                    <br /><span className="text-xs text-orange-600 font-medium">Note: Payment will be requested ONLY after your paper is approved.</span>
+                                </p>
+                                <FileUploader
+                                    onUploadComplete={setPaperUrl}
+                                    label="Upload Abstract/Paper"
+                                />
                             </div>
+                        ) : (
+                            (parseInt(event.price) > 0) && (
+                                <div className="border-t pt-4">
+                                    <h3 className="font-semibold mb-2">Organizer Details</h3>
+                                    {organizerDetails.name && <p className="text-sm text-gray-700 mb-1">Name: <span className="font-medium">{organizerDetails.name}</span></p>}
+                                    {organizerDetails.email && <p className="text-sm text-gray-700 mb-1">Email: <span className="font-medium">{organizerDetails.email}</span></p>}
+                                    {organizerDetails.mobile && <p className="text-sm text-gray-700 mb-1">Mobile: <span className="font-medium">{organizerDetails.mobile}</span></p>}
+
+                                    <h3 className="font-semibold mb-2 mt-4">Payment Details</h3>
+                                    <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
+
+                                    {organizerDetails.upiId && (
+                                        <p className="text-sm text-gray-700 mb-2">UPI ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded select-all">{organizerDetails.upiId}</span></p>
+                                    )}
+
+                                    {event.paymentQrCodeUrl && (
+                                        <div className="flex justify-center mb-4">
+                                            <img src={event.paymentQrCodeUrl} alt="Payment QR Code" className="w-48 h-48 object-contain border rounded-lg" />
+                                        </div>
+                                    )}
+
+                                    <div className="mt-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
+                                        <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
+                                        {paymentScreenshotUrl && (
+                                            <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+                                                <Upload size={14} /> Screenshot uploaded!
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )
                         )}
 
                         <button
                             type="submit"
-                            disabled={loading || (parseInt(event.price) > 0 && !paymentScreenshotUrl)}
+                            disabled={
+                                loading ||
+                                (isPaperPresentation && !paperUrl) ||
+                                (!isPaperPresentation && parseInt(event.price) > 0 && !paymentScreenshotUrl)
+                            }
                             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Registering...' : 'Confirm Registration'}
+                            {loading ? 'Submitting...' : (isPaperPresentation ? 'Submit Paper' : 'Confirm Registration')}
                         </button>
                     </form>
                 </div>

@@ -110,6 +110,22 @@ const Navbar = () => {
 
                         {/* Mobile Menu Button */}
                         <div className="md:hidden flex items-center">
+                            <div className="relative group mr-4">
+                                <button className="flex items-center text-gray-300 hover:text-blue-400 transition-colors focus:outline-none relative">
+                                    <Bell size={20} />
+                                    {/* Badge for unread count */}
+                                    <NotificationBadge />
+                                </button>
+
+                                {/* Notification Dropdown */}
+                                <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 max-h-96 overflow-y-auto">
+                                    <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center bg-black/50 sticky top-0 backdrop-blur-md">
+                                        <span className="text-sm font-semibold text-white">Notifications</span>
+                                        <MarkAllReadButton />
+                                    </div>
+                                    <NotificationList />
+                                </div>
+                            </div>
                             <button
                                 onClick={toggleMenu}
                                 className="text-gray-300 hover:text-white focus:outline-none"
