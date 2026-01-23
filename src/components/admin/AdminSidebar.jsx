@@ -15,7 +15,6 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { path: '/admin/attendance', icon: <QrCode size={20} />, label: 'Attendance' },
         { path: '/admin/participants', icon: <Users size={20} />, label: 'Participants' },
         { path: '/admin/users', icon: <Users size={20} />, label: 'Users' },
-        // { path: '/admin/gallery', icon: <ImageIcon size={20} />, label: 'Gallery Upload' }, // Removed
         { path: '/admin/settings', icon: <Settings size={20} />, label: 'Settings' },
         { path: '/admin/data', icon: <Database size={20} />, label: 'Data Management' },
     ];

@@ -18,6 +18,15 @@ const OrganizerDashboard = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
 
+    const currentYear = new Date().getFullYear().toString();
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+
+    const filteredEvents = events.filter(event => {
+        if (selectedYear === 'all') return true;
+        const evtYear = event.date ? new Date(event.date).getFullYear().toString() : (event.year || '').toString();
+        return evtYear === selectedYear.toString();
+    });
+
     const fetchEvents = async () => {
         if (!currentUser) return;
         try {
@@ -40,6 +49,8 @@ const OrganizerDashboard = () => {
         fetchEvents();
     }, [currentUser]);
 
+
+
     const handleEditEvent = (event) => {
         setEditingEvent(event);
         setShowCreateModal(true);
@@ -61,12 +72,29 @@ const OrganizerDashboard = () => {
         return <DashboardSkeleton />;
     }
 
+    // Filter logic for dropdown: Unique years from events + Current Year, sorted latest first
+    const uniqueYearSet = new Set(events.map(e => (e.date ? new Date(e.date).getFullYear() : e.year).toString()));
+    uniqueYearSet.add(currentYear);
+    const derivedYears = Array.from(uniqueYearSet).sort().reverse();
+
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
+                {/* Year Filter */}
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
                     <div className="flex items-center gap-4">
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                        >
+                            <option value="all">All Years</option>
+                            {derivedYears.map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+
                         <Link
                             to="/organizer/scan"
                             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md"
@@ -86,12 +114,23 @@ const OrganizerDashboard = () => {
                 </div>
 
                 <div>
-                    <h2 className="text-2xl font-bold mb-6">Manage Events</h2>
-                    {events.length === 0 ? (
-                        <p className="text-gray-500">No events found.</p>
+                    <h2 className="text-2xl font-bold mb-6">Manage Events ({selectedYear === 'all' ? 'All' : selectedYear})</h2>
+                    {filteredEvents.length === 0 ? (
+                        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                            <p className="text-gray-500 text-lg">No events found for {selectedYear}.</p>
+                            <button
+                                onClick={() => {
+                                    setEditingEvent(null);
+                                    setShowCreateModal(true);
+                                }}
+                                className="mt-4 text-indigo-600 hover:text-indigo-800 font-medium"
+                            >
+                                Create one now?
+                            </button>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {events.map((event) => (
+                            {filteredEvents.map((event) => (
                                 <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
                                     <img
                                         src={event.imageUrl || 'https://via.placeholder.com/400x200'}

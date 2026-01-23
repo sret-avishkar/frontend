@@ -94,6 +94,7 @@ const AdminOverview = () => {
                     <a href="/admin/events" className="px-4 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">Manage Events</a>
                     <a href="/admin/approvals" className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100">Review Approvals</a>
                     <a href="/admin/settings" className="px-4 py-2 bg-gray-50 text-gray-600 rounded hover:bg-gray-100">Update Settings</a>
+                    <a href="/admin/data" className="px-4 py-2 bg-orange-50 text-orange-600 rounded hover:bg-orange-100">Data Management</a>
                 </div>
             </div>
         </div>

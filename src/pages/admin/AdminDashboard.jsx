@@ -8,7 +8,6 @@ import AdminApprovals from './AdminApprovals';
 import AdminAttendance from './AdminAttendance';
 import AdminParticipants from './AdminParticipants';
 import AdminUsers from './AdminUsers';
-import AdminGallery from './AdminGallery';
 import AdminSettings from './AdminSettings';
 import AdminData from './AdminData';
 import { useAuth } from '../../context/AuthContext';
@@ -16,24 +15,16 @@ import { useAuth } from '../../context/AuthContext';
 import { DashboardSkeleton } from '../../components/Skeleton';
 
 const AdminDashboard = () => {
+    // STRICT CHECK: Only redirect if we are SURE the role is NOT admin.
+    // Hack: Allow 'admin@avishkar.com' explicitly to bypass race conditions where role might flash as 'participant'
     const { userRole, loading, currentUser } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    if (loading) return <DashboardSkeleton />;
-
-    // If we have a user but no role yet, wait.
-    if (currentUser && !userRole) {
-        return <DashboardSkeleton />;
-    }
-
-    // STRICT CHECK: Only redirect if we are SURE the role is NOT admin.
-    // If userRole is 'participant' or 'organizer', then redirect.
-    if (userRole && userRole !== 'admin') {
+    if (userRole && userRole !== 'admin' && currentUser?.email !== 'admin@avishkar.com') {
         return <Navigate to="/dashboard" />;
     }
 
-    // Double safety: If for some reason we fell through but role isn't admin (e.g. empty string), wait or redirect?
-    // Let's assume if we passed the above, it's either admin or we are waiting.
+    // Double safety
     if (userRole !== 'admin') return <DashboardSkeleton />;
 
     return (
@@ -68,7 +59,6 @@ const AdminDashboard = () => {
                     <Route path="attendance" element={<AdminAttendance />} />
                     <Route path="participants" element={<AdminParticipants />} />
                     <Route path="users" element={<AdminUsers />} />
-                    {/* <Route path="gallery" element={<AdminGallery />} /> */}
                     <Route path="settings" element={<AdminSettings />} />
                     <Route path="data" element={<AdminData />} />
                 </Routes>
