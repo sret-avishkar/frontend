@@ -5,8 +5,15 @@ import axios from 'axios';
 
 const getBaseUrl = () => {
     if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
-    if (window.location.hostname === 'localhost') return 'http://localhost:5000/api';
-    return 'https://backend-sj3z.onrender.com';
+
+    // Check if running on localhost or local network IP
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+        return `http://${hostname}:5000/api`;
+    }
+
+    // Default to production
+    return 'https://backend-sj3z.onrender.com/api';
 };
 
 const api = axios.create({
