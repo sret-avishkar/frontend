@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import QRScanner from '../../components/QRScanner';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Users, Clock } from 'lucide-react';
 import api from '../../services/api';
 
 const OrganizerQRScanner = () => {
@@ -49,9 +49,14 @@ const OrganizerQRScanner = () => {
 
                 const isAssigned = data.eventAssignedTo === currentUser.uid;
                 const isCreator = data.eventCreatedBy === currentUser.uid;
+                let isDeptOrganizer = false;
 
-                if (!isAssigned && !isCreator) {
-                    throw new Error("This participant is registered for an event you do not manage.");
+                if (data.eventEnableMultiDepartment && data.eventDepartmentOrganizers && data.department) {
+                    isDeptOrganizer = data.eventDepartmentOrganizers[data.department] === currentUser.uid;
+                }
+
+                if (!isAssigned && !isCreator && !isDeptOrganizer) {
+                    throw new Error("This participant is registered for an event (or department) you do not manage.");
                 }
             }
 
@@ -145,6 +150,22 @@ const OrganizerQRScanner = () => {
                                     <div>
                                         <p className="text-sm text-gray-500">Event</p>
                                         <p className="font-medium text-gray-900">{scannedData.eventTitle || 'Unknown Event'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className={`mt-1 mr-3 ${scannedData.status === 'confirmed' ? 'text-green-600' : 'text-orange-500'}`}>
+                                        {scannedData.status === 'confirmed' ? <CheckCircle size={20} /> : <Clock size={20} />}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Payment Status</p>
+                                        <p className={`font-bold text-lg ${scannedData.status === 'confirmed' ? 'text-green-600' :
+                                            scannedData.status === 'rejected' ? 'text-red-600' : 'text-orange-600'
+                                            }`}>
+                                            {scannedData.status === 'confirmed' ? 'PAID & VERIFIED' :
+                                                scannedData.status === 'approved' ? 'Approved (Unpaid)' :
+                                                    (scannedData.status === 'pending' && scannedData.paymentScreenshotUrl) ? 'Verification Pending' :
+                                                        scannedData.status.toUpperCase()}
+                                        </p>
                                     </div>
                                 </div>
                                 {scannedData.teamMembers && scannedData.teamMembers.length > 0 && (
