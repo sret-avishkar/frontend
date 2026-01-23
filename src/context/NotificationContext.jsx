@@ -82,7 +82,7 @@ export const NotificationProvider = ({ children }) => {
         try {
             const messaging = getMessaging();
             unsubscribe = onMessage(messaging, (payload) => {
-                console.log('[NotificationContext] Foreground Message received: ', payload);
+                // console.log('[NotificationContext] Foreground Message received: ', payload);
                 // Handle data-only payload
                 const { title, body } = payload.data || payload.notification || {};
 
