@@ -10,6 +10,7 @@ import AdminParticipants from './AdminParticipants';
 import AdminUsers from './AdminUsers';
 import AdminGallery from './AdminGallery';
 import AdminSettings from './AdminSettings';
+import AdminData from './AdminData';
 import { useAuth } from '../../context/AuthContext';
 
 import { DashboardSkeleton } from '../../components/Skeleton';
@@ -69,6 +70,7 @@ const AdminDashboard = () => {
                     <Route path="users" element={<AdminUsers />} />
                     {/* <Route path="gallery" element={<AdminGallery />} /> */}
                     <Route path="settings" element={<AdminSettings />} />
+                    <Route path="data" element={<AdminData />} />
                 </Routes>
             </div>
         </div>

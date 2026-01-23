@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Calendar, CheckSquare, Users, Settings, QrCode, LogOut, X, Image as ImageIcon, User } from 'lucide-react';
+import { LayoutDashboard, Calendar, CheckSquare, Users, Settings, QrCode, LogOut, X, Image as ImageIcon, User, Database } from 'lucide-react';
 import { auth } from '../../firebase';
 
 const AdminSidebar = ({ isOpen, onClose }) => {
@@ -17,7 +17,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { path: '/admin/users', icon: <Users size={20} />, label: 'Users' },
         // { path: '/admin/gallery', icon: <ImageIcon size={20} />, label: 'Gallery Upload' }, // Removed
         { path: '/admin/settings', icon: <Settings size={20} />, label: 'Settings' },
-        // { path: '/profile', icon: <User size={20} />, label: 'My Profile' }, // Removed for admin
+        { path: '/admin/data', icon: <Database size={20} />, label: 'Data Management' },
     ];
 
     return (
