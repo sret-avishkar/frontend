@@ -44,7 +44,7 @@ const EventDetails = () => {
                 setDeadline(
                     settingsRes.data.registrationDeadline
                         ? new Date(settingsRes.data.registrationDeadline)
-                        : new Date('2025-12-25')
+                        : new Date('2026-12-31')
                 );
 
                 let foundRegistration = null;

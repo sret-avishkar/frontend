@@ -47,11 +47,11 @@ const Home = () => {
                 if (response.data.registrationDeadline) {
                     setDeadline(new Date(response.data.registrationDeadline));
                 } else {
-                    setDeadline(new Date("2026-04-20")); // Set a future default date
+                    setDeadline(new Date("2026-12-31")); // Set a future default date
                 }
             } catch (error) {
                 console.error("Failed to fetch settings", error);
-                setDeadline(new Date("2026-04-20")); // Set a future default date
+                setDeadline(new Date("2026-12-31")); // Set a future default date
             } finally {
                 setDeadlineLoading(false);
             }

@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// const API_URL = 'https://avishkar.onrender.com/api';
+// const API_URL = 'https://backend-sj3z.onrender.com';
 
 
 const getBaseUrl = () => {
     if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
     if (window.location.hostname === 'localhost') return 'http://localhost:5000/api';
-    return 'https://avishkar.onrender.com/api';
+    return 'https://backend-sj3z.onrender.com';
 };
 
 const api = axios.create({

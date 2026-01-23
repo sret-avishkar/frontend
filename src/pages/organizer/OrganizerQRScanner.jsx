@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Users, Clock, Image as ImageIcon } from 'lucide-react';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const OrganizerQRScanner = () => {
     const { userRole, currentUser } = useAuth();
@@ -190,10 +191,9 @@ const OrganizerQRScanner = () => {
                                                     try {
                                                         await api.put(`/registrations/${scannedData.id}/status`, { status: 'confirmed' });
                                                         setScannedData({ ...scannedData, status: 'confirmed' });
-                                                        // toast.success('Registration Confirmed!'); // Toast not imported locally, handling simply or adding import next
-                                                        alert('Registration Confirmed!');
+                                                        toast.success('Registration Confirmed!');
                                                     } catch (e) {
-                                                        alert('Failed to confirm');
+                                                        toast.error('Failed to confirm');
                                                     }
                                                 }}
                                                 className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors shadow-sm flex justify-center items-center gap-2"
