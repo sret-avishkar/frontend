@@ -33,7 +33,7 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = title;
     const notificationOptions = {
         body: body,
-        icon: '/logo192.png',
+        icon: '/logo.png',
         data: { url: url } // Pass url to click handler
     };
 
