@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import QRScanner from '../../components/QRScanner';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Users, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Users, Clock, Image as ImageIcon } from 'lucide-react';
 import api from '../../services/api';
 
 const OrganizerQRScanner = () => {
@@ -167,6 +167,42 @@ const OrganizerQRScanner = () => {
                                                         scannedData.status.toUpperCase()}
                                         </p>
                                     </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-col gap-3">
+                                    {scannedData.paymentScreenshotUrl && (
+                                        <a
+                                            href={scannedData.paymentScreenshotUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 px-4 py-3 rounded-lg font-semibold hover:bg-blue-100 transition-colors border border-blue-200"
+                                        >
+                                            <ImageIcon size={20} /> View Payment Proof
+                                        </a>
+                                    )}
+
+                                    {/* Action Buttons based on Status */}
+                                    {scannedData.status !== 'confirmed' && scannedData.status !== 'rejected' && (
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={async () => {
+                                                    if (!window.confirm('Confirm this payment and admission?')) return;
+                                                    try {
+                                                        await api.put(`/registrations/${scannedData.id}/status`, { status: 'confirmed' });
+                                                        setScannedData({ ...scannedData, status: 'confirmed' });
+                                                        // toast.success('Registration Confirmed!'); // Toast not imported locally, handling simply or adding import next
+                                                        alert('Registration Confirmed!');
+                                                    } catch (e) {
+                                                        alert('Failed to confirm');
+                                                    }
+                                                }}
+                                                className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors shadow-sm flex justify-center items-center gap-2"
+                                            >
+                                                <CheckCircle size={20} />
+                                                {scannedData.paymentScreenshotUrl ? 'Verify & Confirm' : 'Confirm Payment'}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                                 {scannedData.teamMembers && scannedData.teamMembers.length > 0 && (
                                     <div className="flex items-start">
