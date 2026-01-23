@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ImageUploader from './ImageUploader';
-import api from '../services/api';
+import api, { uploadImage } from '../services/api';
 
 import { useAuth } from '../context/AuthContext';
 
@@ -144,8 +144,22 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                 orgIds.add(currentUser.uid);
             }
 
+            // Handle Image Upload if it's base64
+            let finalImageUrl = formData.imageUrl;
+            if (formData.imageUrl && formData.imageUrl.startsWith('data:image')) {
+                try {
+                    // console.log("Uploading base64 image...");
+                    finalImageUrl = await uploadImage(formData.imageUrl, 'events');
+                    // console.log("Image uploaded to:", finalImageUrl);
+                } catch (uploadErr) {
+                    console.error("Image upload failed:", uploadErr);
+                    throw new Error("Failed to upload image. Please try again.");
+                }
+            }
+
             const payload = {
                 ...formData,
+                imageUrl: finalImageUrl,
                 organizerIds: Array.from(orgIds),
                 role: userRole
             };
