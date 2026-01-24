@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Calendar, CheckSquare, Users, Settings, QrCode, LogOut, X, Image as ImageIcon, User, Database } from 'lucide-react';
+import { LayoutDashboard, Calendar, CheckSquare, Users, Settings, QrCode, LogOut, X, Image as ImageIcon, User, Database, Mail, Bell } from 'lucide-react';
 import { auth } from '../../firebase';
 
 const AdminSidebar = ({ isOpen, onClose }) => {
@@ -15,12 +15,14 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { path: '/admin/attendance', icon: <QrCode size={20} />, label: 'Attendance' },
         { path: '/admin/participants', icon: <Users size={20} />, label: 'Participants' },
         { path: '/admin/users', icon: <Users size={20} />, label: 'Users' },
+        { path: '/admin/messages', icon: <Mail size={20} />, label: 'Messages' }, // New
+        { path: '/admin/notifications', icon: <Bell size={20} />, label: 'Notifications' }, // New
         { path: '/admin/settings', icon: <Settings size={20} />, label: 'Settings' },
-        { path: '/admin/data', icon: <Database size={20} />, label: 'Data Management' },
+        // { path: '/admin/data', icon: <Database size={20} />, label: 'Data Management' },
     ];
 
     return (
-        <div className={`bg-gray-900 text-white w-64 min-h-screen flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 transform 
+        <div className={`bg-gray-900 text-white w-64 h-[100dvh] flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 transform 
             ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
 
             <div className="p-6 border-b border-gray-800 flex justify-between items-center">

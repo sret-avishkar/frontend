@@ -1,7 +1,36 @@
 import React from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const Contact = () => {
+    const [formData, setFormData] = React.useState({
+        name: '',
+        email: '',
+        message: ''
+    });
+    const [loading, setLoading] = React.useState(false);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            await api.post('/contact', formData);
+            toast.success('Message sent successfully!');
+            setFormData({ name: '', email: '', message: '' });
+        } catch (error) {
+            console.error('Error sending message:', error);
+            toast.error('Failed to send message. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
@@ -58,7 +87,7 @@ const Contact = () => {
                     {/* Contact Form */}
                     <div className="bg-white rounded-lg shadow-md p-8">
                         <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
-                        <form className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                                     Name
@@ -66,6 +95,9 @@ const Contact = () => {
                                 <input
                                     type="text"
                                     id="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                                     placeholder="Your Name"
                                 />
@@ -77,6 +109,9 @@ const Contact = () => {
                                 <input
                                     type="email"
                                     id="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                                     placeholder="you@example.com"
                                 />
@@ -88,15 +123,19 @@ const Contact = () => {
                                 <textarea
                                     id="message"
                                     rows={4}
+                                    required
+                                    value={formData.message}
+                                    onChange={handleChange}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                                     placeholder="How can we help you?"
                                 />
                             </div>
                             <button
-                                type="button"
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                type="submit"
+                                disabled={loading}
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                             >
-                                Send Message
+                                {loading ? 'Sending...' : 'Send Message'}
                             </button>
                         </form>
                     </div>
