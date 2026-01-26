@@ -34,7 +34,7 @@ const Footer = () => {
                         </div>
 
                         {/* Social Icons */}
-                        <h1 className="text-white font-medium tracking-wide text-center sd:pl-20 md:pl-40">Follow Us</h1>
+                        <h2 className="text-white font-medium tracking-wide text-center sd:pl-20 md:pl-40">Follow Us</h2>
                         <div className="flex space-x-4 sd:pl-0 md:pl-20">
                             <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-blue-600 hover:text-white text-gray-400 transition-all duration-300 hover:-translate-y-1">
                                 <FaInstagram size={18} />
