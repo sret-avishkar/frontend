@@ -60,7 +60,7 @@ const Footer = () => {
                     {/* Added a separator dot for desktop view */}
                     {/* <span className="hidden md:block text-gray-700">•</span> */}
                     <p className="text-gray-300 pt-4 text-xs">
-                        Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Department of AI&DS</a>
+                        Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-200 hover:text-blue-400 transition-colors font-medium">Department of AI&DS</a>
 
                         {/*Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Prem Sagar</a>
 and <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Dinesh</a> */}
