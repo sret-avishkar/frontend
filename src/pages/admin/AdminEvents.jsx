@@ -11,12 +11,17 @@ const AdminEvents = () => {
     const [editingEvent, setEditingEvent] = useState(null);
 
     const [selectedYear, setSelectedYear] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [availableYears, setAvailableYears] = useState([]);
+    const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' });
 
     const fetchEvents = async () => {
         try {
             const response = await api.get('/events?role=admin');
             const allEvents = response.data;
+
+            // Sort all events alphabetically by title
+            allEvents.sort((a, b) => a.title.localeCompare(b.title));
 
             // Extract unique years from Event Dates (ignoring metadata year to match visual column)
             const years = [...new Set(allEvents.map(e => {
@@ -46,13 +51,42 @@ const AdminEvents = () => {
         fetchEvents();
     }, []);
 
-    // Filter events based on selected year
+    // Filter events based on selected year and category
     const filteredEvents = Array.isArray(events) ? events.filter(e => {
-        if (!selectedYear) return true;
-        // Strict date-based filtering to match the displayed Date column
+        // Date-based filtering
         const eventYear = new Date(e.date).getFullYear().toString();
-        return eventYear === selectedYear;
+        const matchesYear = !selectedYear || eventYear === selectedYear;
+
+        // Category filtering
+        const matchesCategory = !selectedCategory || e.category === selectedCategory;
+
+        return matchesYear && matchesCategory;
     }) : [];
+
+    // Apply sorting
+    const sortedEvents = [...filteredEvents].sort((a, b) => {
+        if (sortConfig.key === 'title') {
+            return sortConfig.direction === 'asc'
+                ? a.title.localeCompare(b.title)
+                : b.title.localeCompare(a.title);
+        } else if (sortConfig.key === 'category') {
+            const catCompare = a.category.localeCompare(b.category);
+            if (catCompare !== 0) {
+                return sortConfig.direction === 'asc' ? catCompare : -catCompare;
+            }
+            // Secondary sort by title
+            return a.title.localeCompare(b.title);
+        }
+        return 0;
+    });
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this event?')) {
@@ -101,6 +135,19 @@ const AdminEvents = () => {
                         </div>
                     )}
 
+                    {/* Category Selector */}
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="px-3 py-1.5 rounded-md text-sm border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Categories</option>
+                        <option value="technical">Technical</option>
+                        <option value="non-technical">Non-Technical</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="expo">Expo</option>
+                    </select>
+
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -114,21 +161,31 @@ const AdminEvents = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                            <th
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                onClick={() => requestSort('title')}
+                            >
+                                Title {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                                onClick={() => requestSort('category')}
+                            >
+                                Category {sortConfig.key === 'category' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organizer</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredEvents.length === 0 ? (
+                        {sortedEvents.length === 0 ? (
                             <tr>
                                 <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No events found for {selectedYear}.</td>
                             </tr>
                         ) : (
-                            filteredEvents.map((event) => (
+                            sortedEvents.map((event) => (
                                 <tr key={event.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">{event.title}</div>

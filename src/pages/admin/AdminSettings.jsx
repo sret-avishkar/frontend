@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import api from '../../services/api';
+import ImageUploader from '../../components/ImageUploader';
 
 const AdminSettings = () => {
     const [deadline, setDeadline] = useState('');
@@ -10,6 +11,7 @@ const AdminSettings = () => {
     const [loading, setLoading] = useState(false);
     const [archiveYear, setArchiveYear] = useState(new Date().getFullYear().toString());
     const [archiveLoading, setArchiveLoading] = useState(false);
+    const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState('');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -27,6 +29,9 @@ const AdminSettings = () => {
                 if (response.data.departments) {
                     setDepartments(response.data.departments);
                 }
+                if (response.data.paymentQrCodeUrl) {
+                    setPaymentQrCodeUrl(response.data.paymentQrCodeUrl);
+                }
             } catch (error) {
                 console.error("Failed to fetch settings", error);
             }
@@ -39,7 +44,8 @@ const AdminSettings = () => {
         try {
             await api.put('/settings', {
                 registrationDeadline: new Date(deadline).toISOString(),
-                departments: departments
+                departments: departments,
+                paymentQrCodeUrl: paymentQrCodeUrl
             });
             alert('Settings updated successfully!');
         } catch (error) {
@@ -77,6 +83,7 @@ const AdminSettings = () => {
                     />
                 </div>
 
+
                 <div className="border-t pt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Manage Departments</label>
                     <p className="text-sm text-gray-500 mb-2">Add or remove departments available for event creation.</p>
@@ -112,6 +119,20 @@ const AdminSettings = () => {
                                 </button>
                             </span>
                         ))}
+                    </div>
+                </div>
+
+                <div className="border-t pt-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Global Payment Settings</h3>
+                    <p className="text-sm text-gray-500 mb-2">Upload a default Payment QR Code to be used if an organizer hasn't set their own.</p>
+
+                    <div className="mt-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Default Payment QR Code</label>
+                        <ImageUploader
+                            initialImage={paymentQrCodeUrl}
+                            onUploadComplete={(url) => setPaymentQrCodeUrl(url)}
+                            folder="settings"
+                        />
                     </div>
                 </div>
 

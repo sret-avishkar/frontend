@@ -53,8 +53,8 @@ const Contact = () => {
                                 </div>
                                 <div className="ml-4">
                                     <h3 className="text-lg font-medium text-gray-900">Email</h3>
-                                    <p className="mt-1 text-gray-600">support@avishkar.com</p>
-                                    <p className="text-gray-600">events@avishkar.com</p>
+                                    <a href="mailto:sret.avishkar@gmail.com?subject=Regarding%20Avishkar%20Event" className="mt-1 text-gray-600">sret.avishkar@gmail.com</a>
+                                    {/* <p className="text-gray-600">events@avishkar.com</p> */}
                                 </div>
                             </div>
 
@@ -64,8 +64,8 @@ const Contact = () => {
                                 </div>
                                 <div className="ml-4">
                                     <h3 className="text-lg font-medium text-gray-900">Phone</h3>
-                                    <a className="mt-1 text-gray-600" href="tel:+919876543210">+91 98765 43210</a><br />
-                                    <a className="text-gray-600" href="tel:+911234567890">+91 12345 67890</a>
+                                    <a className="mt-1 text-gray-600" href="tel:+918297818545">Dr. A. Muni Sankar</a><br />
+                                    <a className="text-gray-600" href="tel:+916302718205">Dr. K. Swapna Sudha</a>
                                 </div>
                             </div>
 

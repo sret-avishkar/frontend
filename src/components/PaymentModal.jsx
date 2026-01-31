@@ -8,6 +8,8 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [organizerPaymentInfo, setOrganizerPaymentInfo] = useState({ upiId: '', qrCodeUrl: '' });
+    const [globalQrCode, setGlobalQrCode] = useState('');
+    const [payLater, setPayLater] = useState(false);
 
     React.useEffect(() => {
         const fetchOrganizerDetails = async () => {
@@ -52,7 +54,19 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
             }
         };
 
+        const fetchSettings = async () => {
+            try {
+                const res = await api.get('/settings');
+                if (res.data.paymentQrCodeUrl) {
+                    setGlobalQrCode(res.data.paymentQrCodeUrl);
+                }
+            } catch (e) {
+                console.error("Failed to fetch settings", e);
+            }
+        };
+
         fetchOrganizerDetails();
+        fetchSettings();
     }, [event, registration]);
 
     const handleSubmit = async (e) => {
@@ -60,8 +74,14 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
         setLoading(true);
         setError('');
 
-        if (!paymentScreenshotUrl) {
-            setError('Please upload the payment screenshot.');
+        if (!paymentScreenshotUrl && !payLater) {
+            setError('Please upload the payment screenshot or select "Pay Later".');
+            return;
+        }
+
+        if (payLater) {
+            onClose();
+            alert('Please make sure to pay at the venue to confirm your participation.');
             return;
         }
 
@@ -81,7 +101,7 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
         }
     };
 
-    const finalQrCode = organizerPaymentInfo.qrCodeUrl || event.paymentQrCodeUrl;
+    const finalQrCode = organizerPaymentInfo.qrCodeUrl || event.paymentQrCodeUrl || globalQrCode;
     const finalUpiId = organizerPaymentInfo.upiId || event.upiId;
 
     return (
@@ -103,6 +123,22 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
                     <div className="space-y-4">
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="payLaterModal"
+                                checked={payLater}
+                                onChange={(e) => {
+                                    setPayLater(e.target.checked);
+                                    if (e.target.checked) setPaymentScreenshotUrl('');
+                                }}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="payLaterModal" className="ml-2 block text-sm text-gray-900">
+                                Pay Later (at venue)
+                            </label>
+                        </div>
+
                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
                             <p className="text-sm font-medium text-gray-700 mb-2">Scan QR or Pay via UPI</p>
 
@@ -122,14 +158,18 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
                             )}
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
-                            <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
-                        </div>
+                        {!payLater && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
+                                <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
+                            </div>
+                        )}
+
+
 
                         <button
                             onClick={handleSubmit}
-                            disabled={loading || !paymentScreenshotUrl}
+                            disabled={loading || (!paymentScreenshotUrl && !payLater)}
                             className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400"
                         >
                             {loading ? 'Submitting...' : 'Submit Payment'}

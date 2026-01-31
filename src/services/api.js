@@ -18,6 +18,9 @@ const getBaseUrl = () => {
 
 const api = axios.create({
     baseURL: getBaseUrl(),
+    headers: {
+        'X-Client-App': 'Avishkar-Web'
+    }
 });
 
 api.interceptors.response.use(

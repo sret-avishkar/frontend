@@ -140,12 +140,17 @@ const Home = () => {
     );
 
     const nonTechnicalEvents = useMemo(
-        () => upcomingEvents.filter(e => e.category === 'non-technical' || e.category === 'cultural'),
+        () => upcomingEvents.filter(e => e.category === 'non-technical'),
         [upcomingEvents]
     );
 
-    const spotEvents = useMemo(
-        () => upcomingEvents.filter(e => e.category === 'spot'),
+    const workshops = useMemo(
+        () => upcomingEvents.filter(e => e.category === 'workshop'),
+        [upcomingEvents]
+    );
+
+    const expoEvents = useMemo(
+        () => upcomingEvents.filter(e => e.category === 'expo'),
         [upcomingEvents]
     );
 
@@ -198,15 +203,15 @@ const Home = () => {
                             loop
                             muted
                             playsInline
-                            className="absolute inset-0 w-full h-full object-cover opacity-70 md:hidden"
-                        // className="absolute inset-0 w-full h-full object-cover opacity-70 md"
+                            // className="absolute inset-0 w-full h-full object-cover opacity-70 md:hidden"
+                            className="absolute inset-0 w-full h-full object-cover md"
                         >
                             <source src="/assets/videos/background.mp4" type="video/mp4" />
                         </video>
 
                         {/* Desktop Background - Slideshow */}
-                        <div className="hidden md:block absolute inset-0 w-full h-full">
-                            {/* <div className="hidden absolute inset-0 w-full h-full"> */}
+                        {/* <div className="hidden md:block absolute inset-0 w-full h-full"> */}
+                        <div className="hidden absolute inset-0 w-full h-full">
                             {heroImages.map((img, index) => (
                                 <img
                                     key={index}
@@ -334,13 +339,22 @@ const Home = () => {
                                 viewAllLink="/events?category=non-technical"
                             />
                             <EventSection
-                                title="Spot Events"
-                                eventsList={spotEvents}
+                                title="Workshops"
+                                eventsList={workshops}
                                 currentUser={currentUser}
                                 userRole={userRole}
                                 handleRegister={handleRegister}
                                 isRegistrationClosed={isRegistrationClosed}
-                                viewAllLink="/events?category=spot"
+                                viewAllLink="/events?category=workshop"
+                            />
+                            <EventSection
+                                title="Expos"
+                                eventsList={expoEvents}
+                                currentUser={currentUser}
+                                userRole={userRole}
+                                handleRegister={handleRegister}
+                                isRegistrationClosed={isRegistrationClosed}
+                                viewAllLink="/events?category=expo"
                             />
                         </div >
                     )}

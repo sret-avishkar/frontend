@@ -93,17 +93,17 @@ const EventSection = ({ title, eventsList, currentUser, userRole, handleRegister
                                         <img
                                             src={event.imageUrl || 'https://via.placeholder.com/400x200'}
                                             alt={event.title}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            className="w-full h-full object-contain bg-gray-50 transition-transform duration-700 group-hover:scale-105" // Reduced scale for contain
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-bold text-blue-600 shadow-sm">
                                             ₹{event.price}
                                         </div>
-                                        {event.enableMultiDepartment && (
+                                        {/* {event.enableMultiDepartment && (
                                             <div className="absolute bottom-4 left-4 bg-purple-600/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm border border-purple-400">
                                                 Multi-Dept
                                             </div>
-                                        )}
+                                        )} */}
                                     </div>
                                     <div className="p-6">
                                         <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">{event.title}</h3>

@@ -12,6 +12,7 @@ import Events from './pages/Events';
 import NotFound from './pages/NotFound';
 import EventDetails from './pages/EventDetails';
 import AdminDashboard from './pages/admin/AdminDashboard';
+// import api from './services/api';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import CustomContextMenu from './components/CustomContextMenu';
@@ -32,6 +33,9 @@ import toast from 'react-hot-toast'; // Added toast import for the blockKeys fun
 function App() {
   useEffect(() => {
     const blockKeys = (e) => {
+      // Allow dev tools in local development
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+
       if (!e.key) return;
       const key = e.key.toLowerCase();
       if (
@@ -87,6 +91,23 @@ const Layout = () => {
 };
 
 function AppContent() {
+  // Keep-alive mechanism: Ping backend every 14 minutes to prevent cold starts/sleeping
+  // useEffect(() => {
+  //   const pingBackend = async () => {
+  //     try {
+  //       await api.get('/settings'); // Lightweight request
+  //       console.log("Keep-alive ping sent");
+  //     } catch (error) {
+  //       // Ignore errors, it's just a ping
+  //     }
+  //   };
+
+  //   const interval = setInterval(pingBackend, 14 * 60 * 1000); // 14 minutes
+  //   pingBackend(); // Initial ping
+
+  //   return () => clearInterval(interval);
+  // }, []);
+
   return (
     <AuthProvider>
       <NotificationProvider>

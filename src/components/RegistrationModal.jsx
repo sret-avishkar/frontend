@@ -17,6 +17,8 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [organizerDetails, setOrganizerDetails] = useState({});
+    const [globalQrCode, setGlobalQrCode] = useState('');
+    const [payLater, setPayLater] = useState(false);
 
     React.useEffect(() => {
         const fetchOrganizerDetails = async () => {
@@ -47,7 +49,8 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                             name: response.data.name || '',
                             email: response.data.email || '',
                             mobile: response.data.mobileNumber || '',
-                            upiId: response.data.upiId || ''
+                            upiId: response.data.upiId || '',
+                            qrCodeUrl: response.data.paymentQrCodeUrl || ''
                         });
                     } else {
                         setOrganizerDetails({});
@@ -61,7 +64,22 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
             }
         };
 
+        const fetchSettings = async () => {
+            try {
+                const res = await api.get('/settings');
+                if (res.data.paymentQrCodeUrl) {
+                    setGlobalQrCode(res.data.paymentQrCodeUrl);
+                }
+            } catch (e) {
+                console.error("Failed to fetch settings", e);
+            }
+        };
+
+
+
         fetchOrganizerDetails();
+        fetchSettings();
+        fetchSettings();
     }, [event, department]);
 
     const handleSubmit = async (e) => {
@@ -82,9 +100,10 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                 email: currentUser.email,
                 name: currentUser.displayName || 'Participant',
                 teamMembers,
-                paymentScreenshotUrl: isPaperPresentation ? '' : paymentScreenshotUrl,
+                paymentScreenshotUrl: (isPaperPresentation || payLater) ? '' : paymentScreenshotUrl,
                 paperUrl: isPaperPresentation ? paperUrl : '',
-                status: 'pending' // Always pending initially. Paper status handled separately by backend.
+                status: 'pending', // Always pending initially. Paper status handled separately by backend.
+                payLater: payLater // Optional: backend might flag this if needed, but 'pending' + no screenshot implies it
             });
             onRegistrationSuccess();
             onClose();
@@ -288,25 +307,50 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                     <h3 className="font-semibold mb-2 mt-4">Payment Details</h3>
                                     <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
 
-                                    {organizerDetails.upiId && (
-                                        <p className="text-sm text-gray-700 mb-2">UPI ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded select-all">{organizerDetails.upiId}</span></p>
-                                    )}
-
-                                    {event.paymentQrCodeUrl && (
-                                        <div className="flex justify-center mb-4">
-                                            <img src={event.paymentQrCodeUrl} alt="Payment QR Code" className="w-48 h-48 object-contain border rounded-lg" />
-                                        </div>
-                                    )}
-
-                                    <div className="mt-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
-                                        <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
-                                        {paymentScreenshotUrl && (
-                                            <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
-                                                <Upload size={14} /> Screenshot uploaded!
-                                            </p>
-                                        )}
+                                    <div className="mb-4 flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="payLater"
+                                            checked={payLater}
+                                            onChange={(e) => {
+                                                setPayLater(e.target.checked);
+                                                if (e.target.checked) setPaymentScreenshotUrl('');
+                                            }}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <label htmlFor="payLater" className="ml-2 block text-sm text-gray-900">
+                                            Pay Later (at venue/later)
+                                        </label>
                                     </div>
+
+                                    {!payLater && (
+                                        <>
+                                            {organizerDetails.upiId && (
+                                                <p className="text-sm text-gray-700 mb-2">UPI ID: <span className="font-mono bg-gray-100 px-2 py-1 rounded select-all">{organizerDetails.upiId}</span></p>
+                                            )}
+
+                                            {(organizerDetails.qrCodeUrl || event.paymentQrCodeUrl || globalQrCode) && (
+                                                <div className="flex justify-center mb-4">
+                                                    <img
+                                                        src={organizerDetails.qrCodeUrl || event.paymentQrCodeUrl || globalQrCode}
+                                                        alt="Payment QR Code"
+                                                        className="w-48 h-48 object-contain border rounded-lg"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Upload Payment Screenshot</label>
+                                                <ImageUploader onUploadComplete={setPaymentScreenshotUrl} folder="payments" />
+                                                {paymentScreenshotUrl && (
+                                                    <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+                                                        <Upload size={14} /> Screenshot uploaded!
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
                                 </div>
                             )
                         )}
@@ -316,11 +360,11 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                             disabled={
                                 loading ||
                                 (isPaperPresentation && !paperUrl) ||
-                                (!isPaperPresentation && parseInt(event.price) > 0 && !paymentScreenshotUrl)
+                                (!isPaperPresentation && parseInt(event.price) > 0 && !paymentScreenshotUrl && !payLater)
                             }
                             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Submitting...' : (isPaperPresentation ? 'Submit Paper' : 'Confirm Registration')}
+                            {loading ? 'Submitting...' : (isPaperPresentation ? 'Submit Paper' : (payLater ? 'Register & Pay Later' : 'Confirm Registration'))}
                         </button>
                     </form>
                 </div>

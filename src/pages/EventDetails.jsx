@@ -289,7 +289,7 @@ const EventDetails = () => {
                             <img
                                 src={event.imageUrl || 'https://via.placeholder.com/800x400'}
                                 alt={event.title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain bg-gray-50"
                             />
                             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full font-bold text-blue-600 border border-gray-200 shadow-sm">
                                 ₹{event.price}
@@ -519,7 +519,8 @@ const EventDetails = () => {
                                             ) : (
                                                 // Pay Now Button Logic
                                                 ((registrationData.status === 'approved' ||
-                                                    (isPaperPresentation && registrationData.paperStatus === 'accepted')) && !registrationData.paymentScreenshotUrl) ? (
+                                                    (isPaperPresentation && registrationData.paperStatus === 'accepted') ||
+                                                    (registrationData.payLater === true)) && !registrationData.paymentScreenshotUrl) ? (
                                                     <button
                                                         onClick={() => setShowPaymentModal(true)}
                                                         className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 animate-bounce-short"

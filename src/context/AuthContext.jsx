@@ -61,6 +61,8 @@ export const AuthProvider = ({ children }) => {
 
                         // Attach custom data
                         user.organizerRequest = userData.organizerRequest || userData.conductorRequest;
+                        user.mobileNumber = userData.mobileNumber;
+                        user.name = userData.name || userData.displayName;
                     } else {
                         setUserRole('participant');
                     }

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import QRCode from 'react-qr-code';
 import { DashboardSkeleton } from '../components/Skeleton';
+import ImageUploader from '../components/ImageUploader';
 
 const Profile = () => {
     const { currentUser, userRole } = useAuth();
@@ -16,7 +17,8 @@ const Profile = () => {
         email: '',
         mobileNumber: '',
         upiId: '',
-        role: ''
+        role: '',
+        paymentQrCodeUrl: ''
     });
     // Password Change State
     const [passwords, setPasswords] = useState({
@@ -63,7 +65,8 @@ const Profile = () => {
                             email: data.email || currentUser.email || '',
                             mobileNumber: data.mobileNumber || '',
                             upiId: data.upiId || '',
-                            role: data.role || userRole || 'participant'
+                            role: data.role || userRole || 'participant',
+                            paymentQrCodeUrl: data.paymentQrCodeUrl || ''
                         });
                     } else {
                         setUserData({
@@ -114,7 +117,8 @@ const Profile = () => {
             await updateDoc(userRef, {
                 name: userData.name || '',
                 mobileNumber: userData.mobileNumber || '',
-                upiId: userData.upiId || ''
+                upiId: userData.upiId || '',
+                paymentQrCodeUrl: userData.paymentQrCodeUrl || ''
             });
             toast.success("Profile updated successfully!");
         } catch (error) {
@@ -413,6 +417,23 @@ const Profile = () => {
                                         <p className="text-xs text-gray-500 mt-1">This will be shown to students for payments.</p>
                                     </div>
                                 )}
+                                {/* Payment QR Code (Organizer only) */}
+                                {userRole === 'organizer' && (
+                                    <div className="md:col-span-2 border-t border-gray-200 pt-6 mt-2">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                            <QrCode size={18} /> Payment QR Code
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mb-4">Upload your UPI QR code. This will be shown to students when they register for your events.</p>
+
+                                        <div className="max-w-xs">
+                                            <ImageUploader
+                                                initialImage={userData.paymentQrCodeUrl}
+                                                onUploadComplete={(url) => setUserData({ ...userData, paymentQrCodeUrl: url })}
+                                                folder="users/qr"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-6 flex justify-end">
@@ -438,31 +459,33 @@ const Profile = () => {
             </div>
 
             {/* QR Code Modal for Mobile/Profile page */}
-            {showQRModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative animate-fade-in-up">
-                        <button
-                            onClick={() => setShowQRModal(false)}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-gray-100 rounded-full p-1"
-                        >
-                            <X size={20} />
-                        </button>
-                        <div className="text-center pt-2">
-                            <h3 className="text-xl font-bold mb-1 text-gray-900">Entry Pass</h3>
-                            <p className="text-blue-600 font-medium mb-6 text-sm">{selectedEventTitle}</p>
+            {
+                showQRModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 relative animate-fade-in-up">
+                            <button
+                                onClick={() => setShowQRModal(false)}
+                                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-gray-100 rounded-full p-1"
+                            >
+                                <X size={20} />
+                            </button>
+                            <div className="text-center pt-2">
+                                <h3 className="text-xl font-bold mb-1 text-gray-900">Entry Pass</h3>
+                                <p className="text-blue-600 font-medium mb-6 text-sm">{selectedEventTitle}</p>
 
-                            <div className="bg-white p-4 inline-block rounded-xl border-2 border-dashed border-gray-300 shadow-inner mb-4">
-                                <QRCode value={selectedQRData || ''} size={180} />
+                                <div className="bg-white p-4 inline-block rounded-xl border-2 border-dashed border-gray-300 shadow-inner mb-4">
+                                    <QRCode value={selectedQRData || ''} size={180} />
+                                </div>
+
+                                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">
+                                    Show at entrance
+                                </p>
                             </div>
-
-                            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">
-                                Show at entrance
-                            </p>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

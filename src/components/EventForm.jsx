@@ -58,7 +58,7 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                 ...prev,
                 organizerName: currentUser.displayName || currentUser.name || '',
                 organizerEmail: currentUser.email || '',
-                organizerMobile: currentUser.phoneNumber || currentUser.mobile || ''
+                organizerMobile: currentUser.mobileNumber || currentUser.phoneNumber || currentUser.mobile || ''
             }));
         }
     }, [initialData, userRole, currentUser]);
@@ -108,6 +108,7 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
     };
 
     const handleDepartmentOrganizerChange = (dept, organizerId) => {
+        // Just update the mapping; global contact fields are not used in multi-dept mode
         setFormData({
             ...formData,
             departmentOrganizers: {
@@ -257,8 +258,8 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                         >
                             <option value="technical">Technical</option>
                             <option value="non-technical">Non-Technical</option>
-                            <option value="cultural">Cultural</option>
-                            <option value="spot">Spot Event</option>
+                            <option value="expo">Expo Project</option>
+                            <option value="workshop">Workshop</option>
                         </select>
                         <div className="mt-2 flex items-center">
                             <input
@@ -377,7 +378,30 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                                 <select
                                     name="assignedTo"
                                     value={formData.assignedTo}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        const selectedOrgId = e.target.value;
+                                        if (!selectedOrgId) {
+                                            setFormData({
+                                                ...formData,
+                                                assignedTo: '',
+                                                organizerName: '',
+                                                organizerEmail: '',
+                                                organizerMobile: ''
+                                            });
+                                            return;
+                                        }
+
+                                        const selectedOrg = organizers.find(o => o.uid === selectedOrgId);
+                                        if (selectedOrg) {
+                                            setFormData({
+                                                ...formData,
+                                                assignedTo: selectedOrgId,
+                                                organizerName: selectedOrg.name || selectedOrg.displayName || '',
+                                                organizerEmail: selectedOrg.email || '',
+                                                organizerMobile: selectedOrg.mobileNumber || selectedOrg.phoneNumber || selectedOrg.mobile || ''
+                                            });
+                                        }
+                                    }}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
                                 >
                                     <option value="">-- Select Organizer --</option>
@@ -404,11 +428,11 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                     )}
                 </div>
 
-                {/* Organizer Contact Details - Show only for Admin or if explicitly needed to edit */}
+                {/* Organizer Contact Details - Show for Admin AND Organizer */}
                 {
-                    userRole === 'admin' && (
+                    (userRole === 'admin' || userRole === 'organizer') && (
                         <div className="border-t pt-4 mt-4">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Organizer Contact Details (Admin Override)</h3>
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">Organizer Contact Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Display Name</label>

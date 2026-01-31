@@ -97,8 +97,12 @@ const Events = () => {
         return acc;
     }, {});
 
-    const itemCategories = Object.keys(groupedEvents);
-    // Ensure selectedCategory is in the list (if set) so a tab appears even if empty
+    const itemCategories = ['technical', 'non-technical', 'workshop', 'expo'];
+    // Filter out categories that have no events if you want to hide empty sections (optional, but per user request implies specific order)
+    // Actually user just said "category should be in the order like technical non-tech and workshops"
+    // So we just use this order for display. We need to make sure we don't crash if a category has no events.
+
+    // Ensure selectedCategory is in the list (if set) so a tab appears even if empty or custom
     const allCategories = selectedCategory && !itemCategories.includes(selectedCategory)
         ? [...itemCategories, selectedCategory]
         : itemCategories;
