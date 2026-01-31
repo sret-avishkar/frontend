@@ -31,6 +31,44 @@ const EventDetails = () => {
     const [winnerData, setWinnerData] = useState({ name: '', position: '1st', rollNo: '', department: '', college: '', teamMembers: [] });
     const [participants, setParticipants] = useState([]);
 
+    const [deptOrganizer, setDeptOrganizer] = useState(null);
+
+    // Fetch Department Specific Organizer if applicable
+    useEffect(() => {
+        const fetchDeptOrganizer = async () => {
+            if (event?.enableMultiDepartment && event?.departmentOrganizers && registrationData?.department) {
+                const organizerId = event.departmentOrganizers[registrationData.department];
+                if (organizerId) {
+                    try {
+                        const res = await api.get(`/users/${organizerId}`);
+                        if (res.data) {
+                            setDeptOrganizer({
+                                name: res.data.name || res.data.displayName,
+                                email: res.data.email,
+                                mobile: res.data.mobileNumber
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch dept organizer", err);
+                    }
+                }
+            } else {
+                setDeptOrganizer(null);
+            }
+        };
+
+        if (event && registrationData) {
+            fetchDeptOrganizer();
+        }
+    }, [event, registrationData]);
+
+    // Helper to determine which organizer info to show
+    const displayOrganizer = deptOrganizer || {
+        name: event?.organizerName,
+        email: event?.organizerEmail,
+        mobile: event?.organizerMobile
+    };
+
     useEffect(() => {
         const fetchEventAndSettings = async () => {
             try {
@@ -351,25 +389,25 @@ const EventDetails = () => {
                             <p className="text-gray-700 whitespace-pre-line leading-relaxed mb-6">{event.description}</p>
 
                             {/* Organizer Contact - Hide if completed */}
-                            {(!isEventCompleted && (event.organizerName || event.organizerEmail || event.organizerMobile)) && (
+                            {(!isEventCompleted && (displayOrganizer.name || displayOrganizer.email || displayOrganizer.mobile)) && (
                                 <div className="mb-8 p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
                                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <User size={20} className="text-blue-600" /> Organizer Contact
+                                        <User size={20} className="text-blue-600" /> Organizer Contact {deptOrganizer ? '(Department Spoc)' : ''}
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {event.organizerName && (
+                                        {displayOrganizer.name && (
                                             <div className="flex items-center gap-3 text-gray-700">
-                                                <span className="font-medium">Name:</span> {event.organizerName}
+                                                <span className="font-medium">Name:</span> {displayOrganizer.name}
                                             </div>
                                         )}
-                                        {event.organizerEmail && (
+                                        {displayOrganizer.email && (
                                             <div className="flex items-center gap-3 text-gray-700">
-                                                <span className="font-medium">Email:</span> {event.organizerEmail}
+                                                <span className="font-medium">Email:</span> {displayOrganizer.email}
                                             </div>
                                         )}
-                                        {event.organizerMobile && (
+                                        {displayOrganizer.mobile && (
                                             <div className="flex items-center gap-3 text-gray-700">
-                                                <span className="font-medium">Mobile:</span> {event.organizerMobile}
+                                                <span className="font-medium">Mobile:</span> {displayOrganizer.mobile}
                                             </div>
                                         )}
                                     </div>

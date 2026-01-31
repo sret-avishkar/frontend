@@ -3,8 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Calendar, CheckSquare, Users, Settings, QrCode, LogOut, X, Image as ImageIcon, User, Database, Mail, Bell } from 'lucide-react';
 import { auth } from '../../firebase';
 
+import { useNotifications } from '../../context/NotificationContext';
+
 const AdminSidebar = ({ isOpen, onClose }) => {
     const location = useLocation();
+    const { clearToken } = useNotifications();
 
     const isActive = (path) => location.pathname === path;
 
@@ -56,6 +59,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
             <div className="p-4 border-t border-gray-800">
                 <button
                     onClick={async () => {
+                        await clearToken(); // Remove FCM Token
                         await auth.signOut();
                         window.location.href = '/';
                     }}

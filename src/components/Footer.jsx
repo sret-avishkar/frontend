@@ -34,7 +34,7 @@ const Footer = () => {
                         </div>
 
                         {/* Social Icons */}
-                        <h2 className="text-white font-medium tracking-wide text-center sd:pl-20 md:pl-40">Follow Us</h2>
+                        {/* <h2 className="text-white font-medium tracking-wide text-center sd:pl-20 md:pl-40">Follow Us</h2>
                         <div className="flex space-x-4 sd:pl-0 md:pl-20">
                             <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-blue-600 hover:text-white text-gray-400 transition-all duration-300 hover:-translate-y-1">
                                 <FaInstagram size={18} />
@@ -48,7 +48,7 @@ const Footer = () => {
                             <a href="#" className="p-3 bg-white/5 rounded-full hover:bg-blue-800 hover:text-white text-gray-400 transition-all duration-300 hover:-translate-y-1">
                                 <FaFacebook size={18} />
                             </a>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
@@ -60,10 +60,10 @@ const Footer = () => {
                     {/* Added a separator dot for desktop view */}
                     {/* <span className="hidden md:block text-gray-700">•</span> */}
                     <p className="text-gray-300 pt-4 text-xs">
-                        Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-200 hover:text-blue-400 transition-colors font-medium">Department of AI&DS</a>
+                        {/* Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-200 hover:text-blue-400 transition-colors font-medium">Department of AI&DS</a> */}
 
-                        {/*Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Prem Sagar</a>
-and <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Dinesh</a> */}
+                        Designed & Developed by <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Prem Sagar</a>
+                        {/* and <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-blue-400 transition-colors font-medium">Dinesh</a> */}
                     </p>
                 </div>
             </div>

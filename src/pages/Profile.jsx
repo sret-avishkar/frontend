@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { User, Mail, Phone, Shield, Save, Loader, QrCode, X, Calendar, Edit, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import api, { uploadImage } from '../services/api';
 import QRCode from 'react-qr-code';
 import { DashboardSkeleton } from '../components/Skeleton';
 import ImageUploader from '../components/ImageUploader';
@@ -113,17 +113,33 @@ const Profile = () => {
         e.preventDefault();
         setSaving(true);
         try {
+            // Handle Payment QR Code Upload if base64
+            let finalPaymentQrCodeUrl = userData.paymentQrCodeUrl;
+            if (userData.paymentQrCodeUrl && userData.paymentQrCodeUrl.startsWith('data:image')) {
+                try {
+                    finalPaymentQrCodeUrl = await uploadImage(userData.paymentQrCodeUrl, 'qr_codes');
+                } catch (uploadErr) {
+                    console.error("QR upload failed:", uploadErr);
+                    throw new Error("Failed to upload QR code. Please try again.");
+                }
+            }
+
+            // Update user data with new URL
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 name: userData.name || '',
                 mobileNumber: userData.mobileNumber || '',
                 upiId: userData.upiId || '',
-                paymentQrCodeUrl: userData.paymentQrCodeUrl || ''
+                paymentQrCodeUrl: finalPaymentQrCodeUrl || ''
             });
+
+            // Update local state to reflect the new URL instead of base64
+            setUserData(prev => ({ ...prev, paymentQrCodeUrl: finalPaymentQrCodeUrl }));
+
             toast.success("Profile updated successfully!");
         } catch (error) {
             console.error("Error updating profile:", error);
-            toast.error("Failed to update profile.");
+            toast.error(error.message || "Failed to update profile.");
         } finally {
             setSaving(false);
         }
@@ -429,7 +445,7 @@ const Profile = () => {
                                             <ImageUploader
                                                 initialImage={userData.paymentQrCodeUrl}
                                                 onUploadComplete={(url) => setUserData({ ...userData, paymentQrCodeUrl: url })}
-                                                folder="users/qr"
+                                                folder="qr_codes"
                                             />
                                         </div>
                                     </div>

@@ -5,11 +5,15 @@ import { auth } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import toast from 'react-hot-toast';
 
+import { useNotifications } from '../../context/NotificationContext';
+
 const PendingApproval = () => {
     const navigate = useNavigate();
+    const { clearToken } = useNotifications();
 
     const handleLogout = async () => {
         try {
+            await clearToken(); // Remove FCM Token
             await signOut(auth);
             toast.success("Logged out successfully");
             navigate('/login');
