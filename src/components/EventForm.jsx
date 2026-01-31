@@ -158,9 +158,21 @@ const EventForm = ({ onEventCreated, initialData = null }) => {
                 }
             }
 
+            // Handle Payment QR Code Upload if it's base64
+            let finalPaymentQrCodeUrl = formData.paymentQrCodeUrl;
+            if (formData.paymentQrCodeUrl && formData.paymentQrCodeUrl.startsWith('data:image')) {
+                try {
+                    finalPaymentQrCodeUrl = await uploadImage(formData.paymentQrCodeUrl, 'qr_codes');
+                } catch (uploadErr) {
+                    console.error("QR upload failed:", uploadErr);
+                    throw new Error("Failed to upload QR code. Please try again.");
+                }
+            }
+
             const payload = {
                 ...formData,
                 imageUrl: finalImageUrl,
+                paymentQrCodeUrl: finalPaymentQrCodeUrl || '',
                 organizerIds: Array.from(orgIds),
                 role: userRole
             };

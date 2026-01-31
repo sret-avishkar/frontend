@@ -508,43 +508,58 @@ const EventDetails = () => {
                             <div className="border-t border-gray-200 pt-6">
                                 {(!currentUser || (userRole !== 'admin' && userRole !== 'organizer')) ? (
                                     <div className="flex flex-col gap-4">
-                                        {isRegistered ? (
-                                            (registrationData.status === 'confirmed') ? (
-                                                <button
-                                                    onClick={() => setShowQRModal(true)}
-                                                    className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 hover:border-green-300 transition-all duration-300 flex items-center justify-center gap-2"
-                                                >
-                                                    <QrCode size={20} /> View Entry Pass
-                                                </button>
-                                            ) : (
-                                                // Pay Now Button Logic
-                                                ((registrationData.status === 'approved' ||
-                                                    (isPaperPresentation && registrationData.paperStatus === 'accepted') ||
-                                                    (registrationData.payLater === true)) && !registrationData.paymentScreenshotUrl) ? (
+                                        {isRegistered ? (() => {
+                                            const isConfirmed = registrationData.status === 'confirmed';
+                                            const isPaymentPending = !registrationData.paymentScreenshotUrl;
+                                            const isPaperAccepted = isPaperPresentation && registrationData.paperStatus === 'accepted';
+
+                                            // Determine if Pay Now button should show
+                                            const shouldShowPayNow = !isConfirmed && isPaymentPending && (
+                                                registrationData.status === 'approved' ||
+                                                isPaperAccepted ||
+                                                registrationData.payLater === true
+                                            );
+
+                                            return (
+                                                <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                                                    {/* 1. Always show Entry Pass if registered */}
                                                     <button
-                                                        onClick={() => setShowPaymentModal(true)}
-                                                        className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 animate-bounce-short"
+                                                        onClick={() => setShowQRModal(true)}
+                                                        className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 hover:border-green-300 transition-all duration-300 flex items-center justify-center gap-2"
                                                     >
-                                                        {isPaperPresentation ? 'Paper Accepted! Pay Now' : 'Pay Now to Confirm Seat'}
+                                                        <QrCode size={20} /> View Entry Pass
                                                     </button>
-                                                ) : (
-                                                    // Status Display Logic
-                                                    <div className={`px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto border text-center ${(registrationData.paymentScreenshotUrl) ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                                        (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                            (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'bg-red-100 text-red-700 border-red-200' :
-                                                                'bg-gray-100 text-gray-700 border-gray-200'
-                                                        }`}>
-                                                        {
-                                                            (registrationData.paymentScreenshotUrl) ? 'Payment Verification Pending' :
-                                                                (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'Paper Under Review' :
-                                                                    (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'Paper Rejected' :
-                                                                        registrationData.status === 'pending' ? 'Pending Approval' :
-                                                                            `Status: ${registrationData.status}`
-                                                        }
-                                                    </div>
-                                                )
-                                            )
-                                        ) : null}
+
+                                                    {/* 2. Show Pay Now Button */}
+                                                    {shouldShowPayNow && (
+                                                        <button
+                                                            onClick={() => setShowPaymentModal(true)}
+                                                            className="px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 animate-bounce-short"
+                                                        >
+                                                            {isPaperPresentation ? 'Paper Accepted! Pay Now' : 'Pay Now to Confirm Seat'}
+                                                        </button>
+                                                    )}
+
+                                                    {/* 3. Status Badge - ONLY if NOT confirmed AND Pay Now is NOT showing */}
+                                                    {(!isConfirmed && !shouldShowPayNow) && (
+                                                        <div className={`px-8 py-4 rounded-xl font-bold text-lg w-full md:w-auto border text-center flex items-center justify-center ${(registrationData.paymentScreenshotUrl) ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                            (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'bg-orange-100 text-orange-700 border-orange-200' :
+                                                                (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'bg-red-100 text-red-700 border-red-200' :
+                                                                    'bg-gray-100 text-gray-700 border-gray-200'
+                                                            }`}>
+                                                            {
+                                                                (registrationData.paymentScreenshotUrl) ? 'Payment Verification Pending' :
+                                                                    (isPaperPresentation && registrationData.paperStatus === 'pending') ? 'Paper Under Review' :
+                                                                        (isPaperPresentation && registrationData.paperStatus === 'rejected') ? 'Paper Rejected' :
+                                                                            registrationData.status === 'pending' ? 'Pending Approval' :
+                                                                                registrationData.status === 'approved' ? 'Approved (Payment Pending)' :
+                                                                                    `Status: ${registrationData.status}`
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })() : null}
 
                                         <button
                                             onClick={handleRegisterClick}
