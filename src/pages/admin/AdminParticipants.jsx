@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 import { Eye, XCircle, ExternalLink } from 'lucide-react';
 
 const AdminParticipants = () => {
