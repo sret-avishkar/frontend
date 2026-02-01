@@ -8,6 +8,7 @@ const EventSection = ({ title, eventsList, currentUser, userRole, handleRegister
     const navigate = useNavigate();
     const location = useLocation();
 
+    // ... scroll logic ...
 
     return (
         <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group/section">
