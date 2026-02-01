@@ -8,8 +8,18 @@ import toast from 'react-hot-toast';
 import { useNotifications } from '../../context/NotificationContext';
 import { format } from 'date-fns';
 
+import { useNavigate } from 'react-router-dom';
+
 const ReceivedNotifications = () => {
     const { notifications, markAsRead } = useNotifications();
+    const navigate = useNavigate();
+
+    const handleNotificationClick = (notif) => {
+        markAsRead(notif.id);
+        if (notif.url) {
+            navigate(notif.url);
+        }
+    };
 
     if (!Array.isArray(notifications) || notifications.length === 0) {
         return <div className="p-4 text-center text-gray-500 text-sm">No notifications received.</div>;
@@ -20,8 +30,8 @@ const ReceivedNotifications = () => {
             {notifications.map((notif) => (
                 <div
                     key={notif.id}
-                    className={`p-4 rounded-lg border transition-colors ${!notif.read ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'}`}
-                    onClick={() => markAsRead(notif.id)}
+                    className={`p-4 rounded-lg border transition-colors cursor-pointer ${!notif.read ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'} hover:bg-gray-50`}
+                    onClick={() => handleNotificationClick(notif)}
                 >
                     <div className="flex justify-between items-start mb-2">
                         <h4 className={`font-medium ${!notif.read ? 'text-blue-800' : 'text-gray-800'}`}>

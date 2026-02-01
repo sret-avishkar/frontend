@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Users, CheckCircle, XCircle, Clock, Download, ExternalLink, Search, FileCheck } from 'lucide-react';
+import { ArrowLeft, User, Users, CheckCircle, XCircle, Clock, Download, ExternalLink, Search, FileCheck, Eye } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,7 +19,12 @@ const EventParticipants = () => {
     const [assignedDepartment, setAssignedDepartment] = useState(null);
     const [isPaperEvent, setIsPaperEvent] = useState(false);
 
+    // Modal State
+    const [selectedParticipant, setSelectedParticipant] = useState(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+
     useEffect(() => {
+        // ... (existing useEffect logic)
         const fetchParticipants = async () => {
             try {
                 // Fetch Event Details for Title and Multi-Dept Logic
@@ -53,15 +58,11 @@ const EventParticipants = () => {
                         setAssignedDepartment(dept);
                         setEventTitle(`${baseTitle} (${dept})`);
                     } else {
-                        // User is organizer but not linked to this event in any way (should ideally not happen if they reached here via dashboard)
-                        // But for security, show NONE.
+                        // User is organizer but not linked to this event in any way
                         access = 'none';
-                        console.warn("Organizer accessed event participants but is not assigned to any dept.");
                     }
                 } else {
-                    // Fallback for single events where user might have access via other means (e.g. historical)
-                    // But if they are not MainOrganizer, they probably shouldn't be here?
-                    // Let's assume 'none' for safety unless they are main.
+                    // Fallback
                     access = 'none';
                 }
 
@@ -97,6 +98,7 @@ const EventParticipants = () => {
     };
 
     const handlePaperStatusUpdate = async (id, newStatus) => {
+        // ... (existing)
         try {
             await api.put(`/registrations/${id}/paper-status`, { paperStatus: newStatus });
             setParticipants(prev =>
@@ -109,9 +111,22 @@ const EventParticipants = () => {
         }
     };
 
-    const filteredParticipants = Array.isArray(participants) ? participants.filter(p => {
-        if (viewAccess === 'none') return false;
+    const handleViewDetails = (participant) => {
+        setSelectedParticipant(participant);
+        setShowDetailsModal(true);
+    };
 
+    const relevantParticipants = Array.isArray(participants) ? participants.filter(p => {
+        // ... (existing)
+        if (viewAccess === 'none') return false;
+        if (viewAccess === 'specific' && assignedDepartment) {
+            return p.department && p.department.toLowerCase() === assignedDepartment.toLowerCase();
+        }
+        return true;
+    }) : [];
+
+    const filteredParticipants = relevantParticipants.filter(p => {
+        // ... (existing)
         const matchesFilter = filter === 'all' || p.status === filter;
         const matchesSearch =
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -119,15 +134,8 @@ const EventParticipants = () => {
             (p.rollNo && p.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (p.college && p.college.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        // Debug log (can remove later)
-        // console.log(`Checking ${p.name}: AssignedDept=${assignedDepartment}, UserDept=${p.department}`);
-
-        const matchesDept = (viewAccess === 'specific' && assignedDepartment)
-            ? p.department === assignedDepartment
-            : true;
-
-        return matchesFilter && matchesSearch && matchesDept;
-    }) : [];
+        return matchesFilter && matchesSearch;
+    });
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-screen">
@@ -138,7 +146,7 @@ const EventParticipants = () => {
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+                {/* Header & Filters ... */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
                     <div>
                         <button
@@ -148,7 +156,10 @@ const EventParticipants = () => {
                             <ArrowLeft size={20} className="mr-2" /> Back
                         </button>
                         <h1 className="text-3xl font-bold text-gray-900">Participants: {eventTitle}</h1>
-                        <p className="text-gray-500 mt-1">Total Registrations: {participants.length}</p>
+                        <p className="text-gray-500 mt-1">
+                            Total Registrations: {relevantParticipants.length}
+                            {viewAccess === 'specific' ? ` (Department: ${assignedDepartment})` : ''}
+                        </p>
                     </div>
                     {isPaperEvent && (
                         <button
@@ -288,29 +299,35 @@ const EventParticipants = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                {/* Only Payment Actions Here */}
-                                                {(p.status === 'pending') ? (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(p.id, p.paymentScreenshotUrl ? 'confirmed' : 'approved')}
-                                                            className="text-green-600 hover:text-green-900 bg-green-50 p-2 rounded-full hover:bg-green-100 transition-colors"
-                                                            title={p.paymentScreenshotUrl ? "Verify Payment & Confirm" : "Approve Info & Allow Payment"}
-                                                        >
-                                                            <CheckCircle size={20} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(p.id, 'rejected')}
-                                                            className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-full hover:bg-red-100 transition-colors"
-                                                            title="Reject Registration"
-                                                        >
-                                                            <XCircle size={20} />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs text-gray-500">
-                                                        {p.status === 'confirmed' ? 'Verified' : p.status === 'approved' && isPaperEvent ? 'Awaiting Pay' : '--'}
-                                                    </span>
-                                                )}
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleViewDetails(p)}
+                                                        className="text-blue-600 hover:text-blue-900 bg-blue-50 p-2 rounded-full hover:bg-blue-100 transition-colors"
+                                                        title="View Full Details"
+                                                    >
+                                                        <Eye size={20} />
+                                                    </button>
+
+                                                    {/* Payment Actions */}
+                                                    {(p.status === 'pending') && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleStatusUpdate(p.id, p.paymentScreenshotUrl ? 'confirmed' : 'approved')}
+                                                                className="text-green-600 hover:text-green-900 bg-green-50 p-2 rounded-full hover:bg-green-100 transition-colors"
+                                                                title={p.paymentScreenshotUrl ? "Verify Payment & Confirm" : "Approve Info & Allow Payment"}
+                                                            >
+                                                                <CheckCircle size={20} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleStatusUpdate(p.id, 'rejected')}
+                                                                className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-full hover:bg-red-100 transition-colors"
+                                                                title="Reject Registration"
+                                                            >
+                                                                <XCircle size={20} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -320,6 +337,96 @@ const EventParticipants = () => {
                     </div>
                 </div>
             </div>
+
+            {/* View Details Modal */}
+            {showDetailsModal && selectedParticipant && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+                        <button
+                            onClick={() => setShowDetailsModal(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <XCircle size={24} />
+                        </button>
+
+                        <h2 className="text-2xl font-bold mb-6 text-gray-900 border-b pb-2">Registration Details</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Personal Info</h3>
+                                <div className="space-y-2">
+                                    <p className="flex justify-between border-b pb-1"><span className="font-medium text-gray-700">Name:</span> <span>{selectedParticipant.name}</span></p>
+                                    <p className="flex justify-between border-b pb-1"><span className="font-medium text-gray-700">Email:</span> <span className="text-sm truncate max-w-[150px]">{selectedParticipant.email}</span></p>
+                                    <p className="flex justify-between border-b pb-1"><span className="font-medium text-gray-700">Mobile:</span> <span>{selectedParticipant.mobile}</span></p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Academic Info</h3>
+                                <div className="space-y-2">
+                                    <p className="flex justify-between border-b pb-1"><span className="font-medium text-gray-700">College:</span> <span className="text-sm truncate max-w-[150px]">{selectedParticipant.college}</span></p>
+                                    <p className="flex justify-between border-b pb-1"><span className="font-medium text-gray-700">Roll No:</span> <span>{selectedParticipant.rollNo}</span></p>
+                                    <div className="flex justify-between items-center border-b pb-1 mt-2">
+                                        <span className="font-medium text-gray-700">Department:</span>
+                                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-sm font-semibold">{selectedParticipant.department || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</h3>
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${selectedParticipant.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                        selectedParticipant.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                            selectedParticipant.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                'bg-yellow-100 text-yellow-800'}`}>
+                                        {selectedParticipant.status.charAt(0).toUpperCase() + selectedParticipant.status.slice(1)}
+                                    </span>
+                                    <span className="text-gray-400 text-sm">
+                                        Registered on {selectedParticipant.timestamp ? new Date(selectedParticipant.timestamp._seconds * 1000).toLocaleDateString() : 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {selectedParticipant.paymentScreenshotUrl && (
+                                <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment Proof</h3>
+                                    <div className="flex justify-center">
+                                        <a href={selectedParticipant.paymentScreenshotUrl} target="_blank" rel="noopener noreferrer" className="block relative group">
+                                            <img src={selectedParticipant.paymentScreenshotUrl} alt="Payment Proof" className="max-h-64 rounded border border-gray-200 shadow-sm transition-transform transform group-hover:scale-105" />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black bg-opacity-20 transition-opacity rounded">
+                                                <ExternalLink className="text-white drop-shadow-md" size={32} />
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedParticipant.teamMembers && selectedParticipant.teamMembers.length > 0 && (
+                                <div className="md:col-span-2">
+                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Team Members ({selectedParticipant.teamMembers.length})</h3>
+                                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                                        {selectedParticipant.teamMembers.map((member, idx) => (
+                                            <li key={idx}>
+                                                <span className="font-medium">{member.name}</span> ({member.details || member.role || 'Member'})
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-8 flex justify-end">
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

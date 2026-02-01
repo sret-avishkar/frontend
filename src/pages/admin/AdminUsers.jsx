@@ -8,11 +8,22 @@ const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const { currentUser } = useAuth();
 
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    // ... (fetchUsers, handleToggleRole, handleRejectRequest, handleDeleteUser kept same)
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
 
     const fetchUsers = async () => {
         try {
@@ -70,7 +81,25 @@ const AdminUsers = () => {
     );
 
     const pendingRequests = filteredUsers.filter(user => user.organizerRequest === true && user.role !== 'organizer');
-    const otherUsers = filteredUsers.filter(user => !user.organizerRequest || user.role === 'organizer');
+
+    // Process Main List: Filter -> Sort
+    const otherUsers = filteredUsers.filter(user => !user.organizerRequest || user.role === 'organizer').sort((a, b) => {
+        if (!sortConfig.key) return 0;
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle nulls
+        if (aValue === undefined || aValue === null) aValue = '';
+        if (bValue === undefined || bValue === null) bValue = '';
+
+        if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
 
     if (loading) return <div className="p-8 text-center">Loading users...</div>;
 
@@ -95,7 +124,41 @@ const AdminUsers = () => {
                 />
             </div>
 
-
+            {/* Pending Requests Section (if any) */}
+            {pendingRequests.length > 0 && (
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <span className="h-2 w-2 bg-yellow-400 rounded-full"></span>
+                        Pending Organizer Requests
+                    </h2>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg overflow-hidden">
+                        {/* Duplicate table for pending requests if needed, usually this section is special */}
+                        <table className="min-w-full divide-y divide-yellow-100">
+                            {/* Simplified request header */}
+                            <thead className="bg-yellow-100/50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-yellow-800 uppercase">User</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-yellow-800 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-yellow-100">
+                                {pendingRequests.map(user => (
+                                    <tr key={user.uid}>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                            <div className="text-sm text-gray-500">{user.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right space-x-2">
+                                            <button onClick={() => handleToggleRole(user)} className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">Approve</button>
+                                            <button onClick={() => handleRejectRequest(user.uid)} className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">Reject</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* All Users Section */}
             <div>
@@ -107,8 +170,29 @@ const AdminUsers = () => {
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     User
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Role
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group transition-colors"
+                                    onClick={() => handleSort('role')}
+                                >
+                                    <span className="flex items-center gap-1">
+                                        Role
+                                        {sortConfig.key === 'role' && (
+                                            sortConfig.direction === 'asc' ? <span className="text-gray-400">▲</span> : <span className="text-gray-400">▼</span>
+                                        )}
+                                    </span>
+                                </th>
+                                <th
+                                    scope="col"
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 group transition-colors"
+                                    onClick={() => handleSort('registrationCount')}
+                                >
+                                    <span className="flex items-center gap-1">
+                                        Registrations
+                                        {sortConfig.key === 'registrationCount' && (
+                                            sortConfig.direction === 'asc' ? <span className="text-gray-400">▲</span> : <span className="text-gray-400">▼</span>
+                                        )}
+                                    </span>
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
@@ -139,6 +223,9 @@ const AdminUsers = () => {
                                                     'bg-green-100 text-green-800'}`}>
                                             {user.role}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {user.registrationCount || 0}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         Active
