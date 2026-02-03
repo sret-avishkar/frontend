@@ -171,14 +171,41 @@ export const NotificationProvider = ({ children }) => {
     };
 
 
-    const clearToken = async () => {
-        if (!currentUser || !fcmToken) return;
+    // Helper to get current token securely
+    const getFcmToken = async (msg) => {
         try {
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                fcmTokens: arrayRemove(fcmToken)
+            const swRegistration = await navigator.serviceWorker.ready;
+            return await getToken(msg, {
+                vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: swRegistration
             });
-            setFcmToken(null);
-            // console.log("FCM Token removed from Firestore on logout.");
+        } catch (error) {
+            console.error("Error retrieving FCM token:", error);
+            return null;
+        }
+    };
+
+    const clearToken = async () => {
+        if (!currentUser) return;
+
+        try {
+            let tokenToRemove = fcmToken;
+
+            // If state is empty, try to fetch it one last time
+            if (!tokenToRemove) {
+                const messaging = getMessaging();
+                tokenToRemove = await getFcmToken(messaging);
+            }
+
+            if (tokenToRemove) {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    fcmTokens: arrayRemove(tokenToRemove)
+                });
+                setFcmToken(null);
+                // console.log("FCM Token removed from Firestore on logout.");
+            } else {
+                console.log("No FCM token found to remove.");
+            }
         } catch (error) {
             console.error("Error removing FCM token:", error);
         }

@@ -90,11 +90,9 @@ const AdminMessages = () => {
                                             <div className="text-sm font-medium text-gray-900">{msg.name}</div>
                                             <div className="text-sm text-gray-500">{msg.email}</div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900 max-w-xs truncate" title={msg.message}>
-                                                {msg.message}
-                                            </div>
-                                        </td>
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap">
+                                            {msg.message}
+                                        </div>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             {!msg.read && (
                                                 <button

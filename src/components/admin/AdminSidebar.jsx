@@ -59,9 +59,15 @@ const AdminSidebar = ({ isOpen, onClose }) => {
             <div className="p-4 border-t border-gray-800">
                 <button
                     onClick={async () => {
-                        await clearToken(); // Remove FCM Token
-                        await auth.signOut();
-                        window.location.href = '/';
+                        try {
+                            await clearToken(); // Remove FCM Token
+                            await auth.signOut();
+                            // navigate('/', { replace: true }); // Use navigate instead of window.location
+                            window.location.href = '/'; // Keep hard refresh for now to ensure state clearance, but after await
+                        } catch (error) {
+                            console.error("Logout failed", error);
+                            window.location.href = '/';
+                        }
                     }}
                     className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-gray-800 hover:text-red-300 rounded-lg w-full transition-colors"
                 >
