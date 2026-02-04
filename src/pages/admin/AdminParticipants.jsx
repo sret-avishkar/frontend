@@ -17,7 +17,14 @@ const AdminParticipants = () => {
         const fetchEvents = async () => {
             try {
                 const response = await api.get('/events?role=admin');
-                setEvents(response.data);
+                const currentYear = new Date().getFullYear().toString();
+                const filteredEvents = response.data
+                    .filter(event => {
+                        const eventYear = new Date(event.date).getFullYear().toString();
+                        return eventYear === currentYear;
+                    })
+                    .sort((a, b) => a.title.localeCompare(b.title));
+                setEvents(filteredEvents);
             } catch (error) {
                 console.error("Failed to fetch events", error);
             }

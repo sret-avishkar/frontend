@@ -168,6 +168,99 @@ const Navbar = () => {
         );
     }
 
+    // Custom Navbar for Coordinator
+    if (userRole === 'coordinator') {
+        return (
+            <nav className="bg-black/80 backdrop-blur-md rounded-sm shadow-sm border-b border-white/10 sticky top-0 z-50 transition-all duration-300">
+                <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-20">
+                        <div className="flex items-center space-x-4">
+                            <Link to="/" className="text-2xl italic uppercase tracking-wider md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 truncate">
+                                Avishkar <span className="text-xs text-white block -mt-1 tracking-normal font-normal">Coordinator</span>
+                            </Link>
+                        </div>
+
+                        {/* Desktop Menu - Coordinator */}
+                        <div className="hidden md:flex items-center space-x-8">
+                            <Link to="/coordinator" className="hover:text-purple-400 px-3 py-2 rounded-md text-lg text-gray-300 hover:bg-white/5 font-medium transition-colors">
+                                Dashboard
+                            </Link>
+
+                            {/* Notification Bell */}
+                            <div className="relative group mr-4">
+                                <button className="flex items-center text-gray-300 hover:text-purple-400 transition-colors focus:outline-none relative">
+                                    <Bell size={20} />
+                                    <NotificationBadge />
+                                </button>
+                                <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 max-h-96 overflow-y-auto">
+                                    <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center bg-black/50 sticky top-0 backdrop-blur-md">
+                                        <span className="text-sm font-semibold text-white">Notifications</span>
+                                        <MarkAllReadButton />
+                                    </div>
+                                    <NotificationList />
+                                </div>
+                            </div>
+
+                            <div className="relative group">
+                                <button className="flex items-center space-x-2 text-gray-300 hover:text-purple-400 transition-colors focus:outline-none">
+                                    <div className="bg-white/10 p-2 rounded-full ring-2 ring-transparent hover:ring-purple-500/50 transition-all">
+                                        <User size={20} />
+                                    </div>
+                                </button>
+                                <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50">
+                                    <div className="px-4 py-2 border-b border-white/10 mb-2">
+                                        <p className="text-sm text-gray-400 truncate">Signed in as</p>
+                                        <p className="text-sm font-medium text-white truncate">{currentUser.email}</p>
+                                    </div>
+                                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2">
+                                        <User size={16} /> Profile
+                                    </Link>
+                                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors flex items-center gap-2">
+                                        <LogOut size={16} /> Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Mobile Menu Button - Coordinator */}
+                        <div className="md:hidden flex items-center">
+                            <div className="relative group mr-4">
+                                <button className="flex items-center text-gray-300 hover:text-purple-400 transition-colors focus:outline-none relative">
+                                    <Bell size={20} />
+                                    <NotificationBadge />
+                                </button>
+                                <div className="absolute right-0 mt-2 w-80 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 max-h-96 overflow-y-auto">
+                                    <div className="px-4 py-2 border-b border-white/10 flex justify-between items-center bg-black/50 sticky top-0 backdrop-blur-md">
+                                        <span className="text-sm font-semibold text-white">Notifications</span>
+                                        <MarkAllReadButton />
+                                    </div>
+                                    <NotificationList />
+                                </div>
+                            </div>
+                            <button onClick={toggleMenu} className="text-gray-300 hover:text-white focus:outline-none">
+                                {isOpen ? <X size={28} /> : <Menu size={28} />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mobile Menu Dropdown - Coordinator */}
+                {isOpen && (
+                    <div className="md:hidden bg-black/90 backdrop-blur-xl shadow-lg absolute w-full left-0 top-20 border-t border-white/10">
+                        <div className="px-4 pt-2 pb-4 space-y-2 flex flex-col items-center">
+                            <Link to="/coordinator" onClick={() => setIsOpen(false)} className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-white/10">
+                                Dashboard
+                            </Link>
+                            <button onClick={handleLogout} className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-red-400 hover:bg-white/10">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </nav>
+        );
+    }
+
     // Standard Navbar for other users
     return (
         <nav className="bg-black/80 backdrop-blur-md rounded-sm shadow-sm border-b border-white/10 sticky top-0 z-50 transition-all duration-300">

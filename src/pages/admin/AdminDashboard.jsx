@@ -7,6 +7,7 @@ import AdminEvents from './AdminEvents';
 import AdminApprovals from './AdminApprovals';
 import AdminAttendance from './AdminAttendance';
 import AdminParticipants from './AdminParticipants';
+import AdminCoordinators from './AdminCoordinators';
 import AdminUsers from './AdminUsers';
 import AdminSettings from './AdminSettings';
 import AdminData from './AdminData';
@@ -60,6 +61,7 @@ const AdminDashboard = () => {
                     <Route path="approvals" element={<AdminApprovals />} />
                     <Route path="attendance" element={<AdminAttendance />} />
                     <Route path="participants" element={<AdminParticipants />} />
+                    <Route path="coordinators" element={<AdminCoordinators />} />
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="settings" element={<AdminSettings />} />
                     <Route path="data" element={<AdminData />} />

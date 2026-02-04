@@ -53,6 +53,8 @@ const Dashboard = () => {
             navigate('/admin', { replace: true });
         } else if (userRole === 'organizer') {
             navigate('/organizer', { replace: true });
+        } else if (userRole === 'coordinator') {
+            navigate('/coordinator', { replace: true });
         } else if (currentUser?.organizerRequest && userRole !== 'organizer') {
             navigate('/pending-approval', { replace: true });
         }
@@ -83,7 +85,7 @@ const Dashboard = () => {
         }
     };
 
-    const isRedirectingUser = !authLoading && (userRole === 'admin' || userRole === 'organizer' || (currentUser?.organizerRequest && userRole !== 'organizer'));
+    const isRedirectingUser = !authLoading && (userRole === 'admin' || userRole === 'organizer' || userRole === 'coordinator' || (currentUser?.organizerRequest && userRole !== 'organizer'));
 
     if (!currentUser && !authLoading) {
         return <div className="p-8 text-center">Please log in to view the dashboard.</div>;

@@ -18,6 +18,7 @@ import Contact from './pages/Contact';
 import CustomContextMenu from './components/CustomContextMenu';
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerQRScanner from './pages/organizer/OrganizerQRScanner';
+import CoordinatorDashboard from './pages/coordinator/CoordinatorDashboard';
 import EventParticipants from './pages/organizer/EventParticipants';
 import PaperReview from './pages/organizer/PaperReview';
 import PendingApproval from './pages/auth/PendingApproval';
@@ -130,6 +131,9 @@ function AppContent() {
                 <Route path="/organizer/scan" element={<OrganizerQRScanner />} />
                 <Route path="/organizer/events/:eventId/participants" element={<EventParticipants />} />
                 <Route path="/organizer/events/:eventId/papers" element={<PaperReview />} />
+                {/* Coordinator Routes */}
+                <Route path="/coordinator" element={<CoordinatorDashboard />} />
+                <Route path="/coordinator/events/:eventId/participants" element={<EventParticipants />} />
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />

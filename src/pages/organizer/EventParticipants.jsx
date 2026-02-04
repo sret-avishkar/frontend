@@ -33,7 +33,7 @@ const EventParticipants = () => {
                 const baseTitle = eventData.title;
                 setIsPaperEvent(eventData.isPaperPresentation);
 
-                console.log("CurrentUser:", currentUser);
+
                 // ... (rest of logic)
 
                 let access = 'none';
@@ -42,7 +42,12 @@ const EventParticipants = () => {
                 const isMainOrganizer =
                     currentUser.uid === eventData.createdBy ||
                     currentUser.uid === eventData.assignedTo ||
-                    currentUser.role === 'admin';
+                    userRole === 'admin' ||
+                    userRole === 'coordinator';
+
+
+
+
 
                 if (isMainOrganizer) {
                     access = 'all';
@@ -82,7 +87,7 @@ const EventParticipants = () => {
         if (currentUser) {
             fetchParticipants();
         }
-    }, [eventId, currentUser]);
+    }, [eventId, currentUser, userRole]);
 
     const handleStatusUpdate = async (id, newStatus) => {
         try {

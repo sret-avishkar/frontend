@@ -31,6 +31,7 @@ const Login = () => {
     const getRedirectPath = (role, fromPath) => {
         if (role === 'admin') return '/admin';
         if (role === 'organizer') return '/organizer';
+        if (role === 'coordinator') return '/coordinator';
         // If fromPath is valid and not root, use it; otherwise dashboard
         return (fromPath && fromPath !== '/') ? fromPath : '/dashboard';
     };
