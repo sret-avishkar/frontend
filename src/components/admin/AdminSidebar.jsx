@@ -17,7 +17,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         { path: '/admin/approvals', icon: <CheckSquare size={20} />, label: 'Pending Approvals' },
         { path: '/admin/attendance', icon: <QrCode size={20} />, label: 'Attendance' },
         { path: '/admin/participants', icon: <Users size={20} />, label: 'Participants' },
-        { path: '/admin/coordinators', icon: <UserCheck size={20} />, label: 'Coordinators' }, // New
+        // { path: '/admin/coordinators', icon: <UserCheck size={20} />, label: 'Coordinators' }, // New
         { path: '/admin/users', icon: <Users size={20} />, label: 'Users' },
         { path: '/admin/messages', icon: <Mail size={20} />, label: 'Messages' }, // New
         { path: '/admin/notifications', icon: <Bell size={20} />, label: 'Notifications' }, // New
