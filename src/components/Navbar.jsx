@@ -43,7 +43,7 @@ const Navbar = () => {
                         <div className="flex items-center space-x-4">
                             {/* <img src="https://images-sretattendance.netlify.app/logo/logo.jpg" alt="Logo" className="w-16 h-16 rounded-full" /> */}
                             <Link to="/" className="text-2xl italic uppercase tracking-wider md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 truncate">
-                                Avishkar
+                                Avishkar <span className="text-xs text-white block -mt-1 tracking-normal font-normal">Organizer</span>
                             </Link>
                         </div>
 

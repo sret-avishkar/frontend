@@ -35,6 +35,8 @@ const Home = () => {
                 navigate('/admin');
             } else if (userRole === 'organizer') {
                 navigate('/organizer');
+            } else if (userRole === 'coordinator') {
+                navigate('/coordinator');
             }
             // Students/Participants can stay on Home page
         }

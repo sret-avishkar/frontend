@@ -123,7 +123,7 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
                     <div className="space-y-4">
-                        <div className="flex items-center">
+                        {/* <div className="flex items-center">
                             <input
                                 type="checkbox"
                                 id="payLaterModal"
@@ -137,7 +137,7 @@ const PaymentModal = ({ registration, event, onClose, onPaymentSuccess }) => {
                             <label htmlFor="payLaterModal" className="ml-2 block text-sm text-gray-900">
                                 Pay Later (at venue)
                             </label>
-                        </div>
+                        </div> */}
 
                         <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-center">
                             <p className="text-sm font-medium text-gray-700 mb-2">Scan QR or Pay via UPI</p>

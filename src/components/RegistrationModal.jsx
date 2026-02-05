@@ -307,7 +307,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                     <h3 className="font-semibold mb-2 mt-4">Payment Details</h3>
                                     <p className="text-sm text-gray-600 mb-2">Please pay <strong>₹{event.price}</strong> to confirm your seat.</p>
 
-                                    <div className="mb-4 flex items-center">
+                                    {/* <div className="mb-4 flex items-center">
                                         <input
                                             type="checkbox"
                                             id="payLater"
@@ -321,7 +321,7 @@ const RegistrationModal = ({ event, onClose, onRegistrationSuccess }) => {
                                         <label htmlFor="payLater" className="ml-2 block text-sm text-gray-900">
                                             Pay Later (at venue/later)
                                         </label>
-                                    </div>
+                                    </div> */}
 
                                     {!payLater && (
                                         <>
