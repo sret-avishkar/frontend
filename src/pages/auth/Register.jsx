@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDocFromServer } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, ArrowRight, ArrowLeft, Quote, Phone, User as UserIcon, Eye, EyeOff } from 'lucide-react';
@@ -26,11 +26,23 @@ const Register = () => {
         "Innovation distinguishes between a leader and a follower.",
         "The best way to predict the future is to create it.",
         "Technology is best when it brings people together.",
+        "The only way to do great work is to love what you do.",
+        "Push yourself, because no one else is going to do it for you.",
+        "Innovation distinguishes between a leader and a follower.",
+
         // "First, solve the problem. Then, write the code.",
         // "Simplicity is the soul of efficiency."
     ];
     // Select a random quote index once on mount
     const [currentQuoteIndex] = useState(Math.floor(Math.random() * quotes.length));
+
+    // Helper to determine redirection path (simplified for Register)
+    const getRedirectPath = (role) => {
+        if (role === 'admin') return '/admin';
+        if (role === 'organizer') return '/organizer';
+        if (role === 'coordinator') return '/coordinator';
+        return '/events'; // Default for new/participant users from Register
+    };
 
     const handleEmailRegister = async (e) => {
         e.preventDefault();
@@ -91,11 +103,27 @@ const Register = () => {
 
     const handleGoogleLogin = async () => {
         try {
-            await signInWithGoogle();
+            const user = await signInWithGoogle();
+
+            // Re-fetch strictly to be sure of role for redirection
+            const userDoc = await getDocFromServer(doc(db, "users", user.uid));
+
             toast.success("Signed in with Google!");
-            navigate('/events');
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                let role = (userData.role || 'participant').toLowerCase().trim();
+                if (role === 'conductor') role = 'organizer';
+
+                const targetPath = getRedirectPath(role);
+                navigate(targetPath, { replace: true });
+            } else {
+                // If doc doesn't exist (AuthContext failed?), fallback
+                navigate('/events', { replace: true });
+            }
         } catch (error) {
-            toast.error("Google Sign In failed");
+            console.error("Google Sign In Error:", error);
+            toast.error("Google Sign In failed: " + error.message);
         }
     };
 
@@ -299,7 +327,7 @@ const Register = () => {
                                 </div>
                             </motion.div>
 
-                            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.65 }}>
+                            {/* <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.65 }}>
                                 <div className="flex items-center">
                                     <input
                                         id="organizer-request"
@@ -312,7 +340,7 @@ const Register = () => {
                                         Request Organizer Access (Requires Admin Approval)
                                     </label>
                                 </div>
-                            </motion.div>
+                            </motion.div> */}
 
                             <motion.button
                                 whileHover={{ scale: 1.02 }}

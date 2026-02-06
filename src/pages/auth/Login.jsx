@@ -24,6 +24,11 @@ const Login = () => {
     const quotes = [
         "Technology is best when it brings people together.",
         "The future belongs to those who believe in the beauty of their dreams.",
+        "Small steps every day lead to big achievements.",
+        "Opportunities don’t happen, you create them.",
+        "Do something today that your future self will thank you for.",
+        "Make each day your masterpiece.",
+
     ];
     const [currentQuoteIndex] = useState(Math.floor(Math.random() * quotes.length));
 
