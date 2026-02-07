@@ -21,12 +21,20 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-            await clearToken(); // Remove token from backend
+            // Attempt to clear token but don't wait more than 1s
+            const clearTokenPromise = clearToken();
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1000));
+
+            await Promise.race([clearTokenPromise, timeoutPromise]);
+
             await signOut(auth);
             navigate('/login');
             setIsOpen(false);
         } catch (error) {
             console.error("Failed to log out", error);
+            // Force logout even if error
+            await signOut(auth);
+            navigate('/login');
         }
     };
 
@@ -155,6 +163,13 @@ const Navbar = () => {
                             >
                                 Dashboard
                             </Link>
+                            <Link
+                                to="/profile"
+                                onClick={() => setIsOpen(false)}
+                                className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-white/10"
+                            >
+                                Profile
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-red-400 hover:bg-white/10"
@@ -250,6 +265,9 @@ const Navbar = () => {
                         <div className="px-4 pt-2 pb-4 space-y-2 flex flex-col items-center">
                             <Link to="/coordinator" onClick={() => setIsOpen(false)} className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-white/10">
                                 Dashboard
+                            </Link>
+                            <Link to="/profile" onClick={() => setIsOpen(false)} className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-gray-300 hover:text-white hover:bg-white/10">
+                                Profile
                             </Link>
                             <button onClick={handleLogout} className="block w-full text-center px-3 py-2 rounded-md text-lg font-medium text-red-400 hover:bg-white/10">
                                 Logout

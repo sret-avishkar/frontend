@@ -93,7 +93,14 @@ const EventParticipants = () => {
         try {
             await api.put(`/registrations/${id}/status`, { status: newStatus });
             setParticipants(prev =>
-                prev.map(p => p.id === id ? { ...p, status: newStatus } : p)
+                prev.map(p => {
+                    if (p.id !== id) return p;
+                    // If rejected, clear payment screenshot locally to reflect change immediately (optional)
+                    if (newStatus === 'rejected') {
+                        return { ...p, status: 'approved', paymentScreenshotUrl: null }; // Optimistic update to Approved (Waiting for Payment)
+                    }
+                    return { ...p, status: newStatus };
+                })
             );
             toast.success(`Registration ${newStatus}`);
         } catch (err) {

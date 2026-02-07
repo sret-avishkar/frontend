@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { Trash2, Eye, Plus, X, Edit } from 'lucide-react';
 import EventForm from '../../components/EventForm';
 import { TableSkeleton } from '../../components/Skeleton';
 
 const AdminEvents = () => {
+    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -188,7 +190,13 @@ const AdminEvents = () => {
                             sortedEvents.map((event) => (
                                 <tr key={event.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{event.title}</div>
+                                        <div
+                                            onClick={() => navigate(`/admin/events/${event.id}/participants`)}
+                                            className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                            title="View Participants"
+                                        >
+                                            {event.title}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {new Date(event.date).toLocaleDateString()}

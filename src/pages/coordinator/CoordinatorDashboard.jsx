@@ -5,6 +5,7 @@ import api from '../../services/api';
 import { Eye, XCircle, ExternalLink, Search, Download } from 'lucide-react';
 import { DashboardSkeleton } from '../../components/Skeleton';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx-js-style';
 
 const CoordinatorDashboard = () => {
     const { currentUser, userRole } = useAuth();
@@ -77,6 +78,186 @@ const CoordinatorDashboard = () => {
         setShowDetailsModal(true);
     };
 
+    const handleDownloadExcel = async () => {
+        if (!events || events.length === 0) {
+            toast.error("No events available to download.");
+            return;
+        }
+
+        const toastId = toast.loading("Preparing Excel download... This may take a while.");
+
+        try {
+            // 1. Fetch Users to map IDs to Emails (Try best effort)
+            let usersMap = {};
+            try {
+                const usersResponse = await api.get('/users');
+                usersResponse.data.forEach(u => {
+                    usersMap[u.uid] = u.email;
+                });
+            } catch (err) {
+                // Silent fail if permission denied, will use IDs
+            }
+
+            // 2. Data Structure: Map<OrganizerEmail, Array<{eventTitle, participants}>>
+            const organizerGroups = {};
+
+            // Helper to push data to organizerGroups
+            const addToGroup = (organizerId, eventTitle, participantList) => {
+                const email = usersMap[organizerId] || `Organizer (ID: ${organizerId})`;
+                if (!organizerGroups[email]) {
+                    organizerGroups[email] = [];
+                }
+                organizerGroups[email].push({ title: eventTitle, participants: participantList });
+            };
+
+            // 3. Iterate Events and Distribute Participants
+            for (const event of events) {
+                try {
+                    const response = await api.get(`/registrations/event/${event.id}`);
+                    const eventParticipants = response.data;
+
+                    if (!eventParticipants || eventParticipants.length === 0) continue;
+
+                    if (event.enableMultiDepartment && event.departmentOrganizers) {
+                        // Multi-Department Logic
+                        const deptMap = {}; // Dept -> Participants
+                        const unassigned = [];
+
+                        eventParticipants.forEach(p => {
+                            if (p.department && event.departmentOrganizers[p.department]) {
+                                if (!deptMap[p.department]) deptMap[p.department] = [];
+                                deptMap[p.department].push(p);
+                            } else {
+                                unassigned.push(p);
+                            }
+                        });
+
+                        // Add grouped dept participants to their respective organizers
+                        Object.keys(deptMap).forEach(dept => {
+                            const orgId = event.departmentOrganizers[dept];
+                            addToGroup(orgId, `${event.title} (${dept})`, deptMap[dept]);
+                        });
+
+                        // Add unassigned to main creator/assignedTo
+                        if (unassigned.length > 0) {
+                            const mainOrgId = event.assignedTo || event.createdBy;
+                            addToGroup(mainOrgId, `${event.title} (Other/Main)`, unassigned);
+                        }
+
+                    } else {
+                        // Single Organizer Logic
+                        const orgId = event.assignedTo || event.createdBy;
+                        addToGroup(orgId, event.title, eventParticipants);
+                    }
+
+                } catch (err) {
+                    console.error(`Failed to fetch participants for event ${event.title}`, err);
+                }
+            }
+
+            // 4. Construct Consolidated Data for Excel
+            const consolidatedData = [];
+
+            // Define Headers
+            const contentHeaders = [
+                "Sl. No", "Participant Name", "Email", "Mobile", "Roll No",
+                "College", "Department", "Registration Status",
+                "Payment Status", "Paper Status", "Team Members", "Registered At"
+            ];
+
+            // Add Headers ONCE at the top
+            consolidatedData.push(contentHeaders);
+
+            const sortedOrganizers = Object.keys(organizerGroups).sort();
+
+            sortedOrganizers.forEach(orgEmail => {
+                // Add Organizer Section Header
+                consolidatedData.push([]); // Spacing
+                consolidatedData.push([`Organizer: ${orgEmail}`]);
+                consolidatedData.push([]); // Spacing
+
+                organizerGroups[orgEmail].forEach(group => {
+                    consolidatedData.push([`Event: ${group.title}`]);
+
+                    group.participants.forEach((p, index) => {
+                        consolidatedData.push([
+                            index + 1,
+                            p.name,
+                            p.email,
+                            p.mobile,
+                            p.rollNo,
+                            p.college,
+                            p.department,
+                            p.status,
+                            p.paymentScreenshotUrl ? 'Uploaded' : 'Pending',
+                            p.paperStatus || 'N/A',
+                            p.teamMembers ? p.teamMembers.map(m => m.name).join(', ') : '',
+                            p.timestamp && p.timestamp._seconds ? new Date(p.timestamp._seconds * 1000).toLocaleString() : 'N/A'
+                        ]);
+                    });
+
+                    consolidatedData.push([]); // Spacing between events
+                });
+            });
+
+            if (consolidatedData.length <= 1) { // Only headers
+                toast.error("No participant data found to download.", { id: toastId });
+                return;
+            }
+
+            // 5. Generate Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(consolidatedData);
+
+            // 6. Apply Styles (Bold Headers & Section Titles)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cellRef]) continue;
+
+                    // Header Row (Row 0)
+                    if (R === 0) {
+                        ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "E0E0E0" } } };
+                    }
+
+                    // Check first column for Organizer/Event headers
+                    if (C === 0) {
+                        const val = ws[cellRef].v;
+                        if (typeof val === 'string' && (val.startsWith('Organizer:') || val.startsWith('Event:'))) {
+                            ws[cellRef].s = { font: { bold: true, sz: 12 } };
+                        }
+                    }
+                }
+            }
+
+            // 7. Auto-fit Columns
+            const colWidths = contentHeaders.map(h => ({ wch: h.length }));
+
+            consolidatedData.forEach(row => {
+                if (row.length > 1) {
+                    row.forEach((cell, i) => {
+                        const cellLength = (cell ? cell.toString().length : 0);
+                        if (colWidths[i] && cellLength > colWidths[i].wch) {
+                            colWidths[i].wch = Math.min(cellLength, 50);
+                        }
+                    });
+                }
+            });
+
+            ws['!cols'] = colWidths;
+
+            // 8. Write File
+            XLSX.utils.book_append_sheet(wb, ws, "My Participants");
+            XLSX.writeFile(wb, `Avishkar_Participants_${new Date().getFullYear()}.xlsx`);
+            toast.success("Download started!", { id: toastId });
+
+        } catch (error) {
+            console.error("Excel generation failed", error);
+            toast.error("Failed to generate Excel file.", { id: toastId });
+        }
+    };
+
     const filteredParticipants = participants.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,6 +275,13 @@ const CoordinatorDashboard = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-gray-900">Coordinator Dashboard</h1>
+                    <button
+                        onClick={handleDownloadExcel}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                    >
+                        <Download size={20} />
+                        Download Participants Data
+                    </button>
                 </div>
 
                 {/* Event Selection */}

@@ -544,7 +544,7 @@ const EventDetails = () => {
                             )}
 
                             <div className="border-t border-gray-200 pt-6">
-                                {(!currentUser || (userRole !== 'admin' && userRole !== 'organizer')) ? (
+                                {(!currentUser || (userRole !== 'admin' && userRole !== 'organizer' && userRole !== 'coordinator')) ? (
                                     <div className="flex flex-col gap-4">
                                         {isRegistered ? (() => {
                                             const isConfirmed = registrationData.status === 'confirmed';

@@ -13,6 +13,7 @@ import AdminSettings from './AdminSettings';
 import AdminData from './AdminData';
 import AdminMessages from './AdminMessages';
 import AdminNotifications from './AdminNotifications';
+import EventParticipants from '../organizer/EventParticipants'; // Import the component
 import { useAuth } from '../../context/AuthContext';
 
 import { DashboardSkeleton } from '../../components/Skeleton';
@@ -23,9 +24,9 @@ const AdminDashboard = () => {
     const { userRole, loading, currentUser } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    if (userRole && userRole !== 'admin' && currentUser?.email !== 'admin@avishkar.com') {
-        return <Navigate to="/dashboard" />;
-    }
+    // if (userRole && userRole !== 'admin' && currentUser?.email !== 'admin@avishkar.com') {
+    //     return <Navigate to="/dashboard" />;
+    // }
 
     // Double safety
     if (userRole !== 'admin') return <DashboardSkeleton />;
@@ -67,6 +68,7 @@ const AdminDashboard = () => {
                     <Route path="data" element={<AdminData />} />
                     <Route path="messages" element={<AdminMessages />} />
                     <Route path="notifications" element={<AdminNotifications />} />
+                    <Route path="events/:eventId/participants" element={<EventParticipants />} /> {/* Add new route */}
                 </Routes>
             </div>
         </div>
