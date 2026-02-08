@@ -3,12 +3,15 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Check, X, Shield, User, Search, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RegisteredEventsModal from '../../components/admin/RegisteredEventsModal';
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
     const { currentUser } = useAuth();
 
     useEffect(() => {
@@ -226,7 +229,15 @@ const AdminUsers = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {user.registrationCount || 0}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setIsEventsModalOpen(true);
+                                            }}
+                                            className="text-blue-600 hover:text-blue-800 hover:underline focus:outline-none"
+                                        >
+                                            {user.registrationCount || 0}
+                                        </button>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         Active
@@ -258,6 +269,16 @@ const AdminUsers = () => {
                     </table>
                 </div>
             </div>
+
+            <RegisteredEventsModal
+                isOpen={isEventsModalOpen}
+                onClose={() => {
+                    setIsEventsModalOpen(false);
+                    setSelectedUser(null);
+                }}
+                userId={selectedUser?.uid}
+                userName={selectedUser?.name || selectedUser?.displayName}
+            />
         </div>
     );
 };
