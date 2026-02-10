@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Eye, XCircle, ExternalLink, Download } from 'lucide-react';
+import { Eye, XCircle, ExternalLink, Download, UserPlus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx-js-style';
 import toast from 'react-hot-toast';
+import SpotRegistrationModal from '../../components/admin/SpotRegistrationModal';
 
 const AdminParticipants = () => {
     const location = useLocation();
@@ -15,6 +16,12 @@ const AdminParticipants = () => {
     // Modal State
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+    // Spot Registration State
+    const [showSpotModal, setShowSpotModal] = useState(false);
+    const [selectedEventForSpot, setSelectedEventForSpot] = useState(null);
+
+
 
     useEffect(() => {
         // ... existing useEffect
@@ -40,8 +47,12 @@ const AdminParticipants = () => {
         // ... existing useEffect
         if (!selectedEventId) {
             setParticipants([]);
+            setSelectedEventForSpot(null);
             return;
         }
+
+        const event = events.find(e => e.id === selectedEventId);
+        setSelectedEventForSpot(event);
 
         const fetchParticipants = async () => {
             setLoading(true);
@@ -55,12 +66,35 @@ const AdminParticipants = () => {
             }
         };
         fetchParticipants();
-    }, [selectedEventId]);
+    }, [selectedEventId, events]);
 
     const handleViewDetails = (participant) => {
         setSelectedParticipant(participant);
         setShowDetailsModal(true);
     };
+
+    const handleSpotRegisterClick = () => {
+        if (!selectedEventId) {
+            toast.error("Please select an event first.");
+            return;
+        }
+
+        const event = events.find(e => e.id === selectedEventId);
+        if (event) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const eventDate = new Date(event.date);
+            eventDate.setHours(0, 0, 0, 0);
+
+            if (eventDate.getTime() !== today.getTime()) {
+                // Optional: Warn if not today, or just allow it for Admin (Admins usually have override power)
+                toast('Note: This event is not scheduled for today.', { icon: '📅' });
+            }
+            setSelectedEventForSpot(event);
+            setShowSpotModal(true);
+        }
+    };
+
 
     const handleDownloadExcel = async () => {
         if (!events || events.length === 0) {
@@ -248,13 +282,24 @@ const AdminParticipants = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">All Registered Participants</h2>
-                <button
-                    onClick={handleDownloadExcel}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-                >
-                    <Download size={20} />
-                    Download All Data (Excel)
-                </button>
+                <div className="flex gap-2">
+                    {selectedEventId && (
+                        <button
+                            onClick={handleSpotRegisterClick}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                        >
+                            <UserPlus size={20} />
+                            Spot Register
+                        </button>
+                    )}
+                    <button
+                        onClick={handleDownloadExcel}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                    >
+                        <Download size={20} />
+                        Download All Data (Excel)
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -416,6 +461,17 @@ const AdminParticipants = () => {
                     </div>
                 </div>
             )}
+
+            {/* Spot Registration Modal */}
+            <SpotRegistrationModal
+                isOpen={showSpotModal}
+                onClose={() => setShowSpotModal(false)}
+                event={selectedEventForSpot}
+                onSuccess={() => {
+                    // Force refresh participants list
+                    window.location.reload();
+                }}
+            />
         </div>
     );
 };

@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { Eye, XCircle, ExternalLink, Search, Download } from 'lucide-react';
+import { Eye, XCircle, ExternalLink, Search, Download, UserPlus } from 'lucide-react';
 import { DashboardSkeleton } from '../../components/Skeleton';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx-js-style';
+import SpotRegistrationModal from '../../components/admin/SpotRegistrationModal';
 
 const CoordinatorDashboard = () => {
     const { currentUser, userRole } = useAuth();
@@ -20,6 +21,7 @@ const CoordinatorDashboard = () => {
     // Modal State
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showSpotModal, setShowSpotModal] = useState(false);
 
     useEffect(() => {
         fetchEvents();
@@ -275,13 +277,41 @@ const CoordinatorDashboard = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-gray-900">Coordinator Dashboard</h1>
-                    <button
-                        onClick={handleDownloadExcel}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-                    >
-                        <Download size={20} />
-                        Download Participants Data
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleDownloadExcel}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                        >
+                            <Download size={20} />
+                            Download Participants Data
+                        </button>
+                        {/* Spot Registration Button - Visible only on Event Date */}
+                        {selectedEventId && (() => {
+                            const evt = events.find(e => e.id === selectedEventId);
+                            if (!evt) return null;
+
+                            const eventDate = new Date(evt.date);
+                            const today = new Date();
+
+                            // Compare dates (ignore time)
+                            const isToday = eventDate.toDateString() === today.toDateString();
+
+                            // For testing/development, you might want to bypass this check or use a flag
+                            // But per requirement: ONLY on the day of the event
+                            if (isToday) {
+                                return (
+                                    <button
+                                        onClick={() => setShowSpotModal(true)}
+                                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm ml-2"
+                                    >
+                                        <UserPlus size={20} />
+                                        Spot Register
+                                    </button>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </div>
                 </div>
 
                 {/* Event Selection */}
@@ -493,6 +523,24 @@ const CoordinatorDashboard = () => {
                     </div>
                 </div>
             )}
+
+            {/* Spot Registration Modal */}
+            <SpotRegistrationModal
+                isOpen={showSpotModal}
+                onClose={() => setShowSpotModal(false)}
+                event={events.find(e => e.id === selectedEventId)}
+                onSuccess={() => {
+                    toast.success("Spot registration successful!");
+                    // Refresh participants
+                    // We can trigger a re-fetch by toggling selectedEventId or extracting fetchParticipants
+                    // Simple heuristic: set selectedEventId to '' then back to id? No that flashes.
+                    // Better: Add a dummy state dependency to fetchParticipants or reload page.
+                    // Reloading page is crude but effective for now, or just let them see it next time.
+                    // Actually, let's just re-trigger the fetch if we extract it.
+                    // For now, reload window or rely on next poll? Let's just reload window for safety/simplicity to ensure data consistency
+                    window.location.reload();
+                }}
+            />
         </div>
     );
 };

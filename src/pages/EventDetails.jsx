@@ -553,8 +553,7 @@ const EventDetails = () => {
 
                                             // Determine if Pay Now button should show
                                             const shouldShowPayNow = !isConfirmed && isPaymentPending && (
-                                                registrationData.status === 'approved' ||
-                                                isPaperAccepted ||
+                                                (isPaperPresentation ? isPaperAccepted : registrationData.status === 'approved') ||
                                                 registrationData.payLater === true
                                             );
 

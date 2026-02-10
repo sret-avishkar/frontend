@@ -21,6 +21,7 @@ const AdminEvents = () => {
         try {
             const response = await api.get('/events?role=admin');
             const allEvents = response.data;
+            console.log("AdminEvents: Fetched events:", allEvents);
 
             // Sort all events alphabetically by title
             allEvents.sort((a, b) => a.title.localeCompare(b.title));
@@ -184,7 +185,7 @@ const AdminEvents = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sortedEvents.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No events found for {selectedYear}.</td>
+                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No events found for {selectedYear}.</td>
                             </tr>
                         ) : (
                             sortedEvents.map((event) => (
@@ -203,6 +204,7 @@ const AdminEvents = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{event.category}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.organizerName || 'Admin'}</td>
+
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                             ${event.status === 'approved' ? 'bg-green-100 text-green-800' :

@@ -123,28 +123,32 @@ const PaperReview = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.paperStatus === 'accepted' ? 'bg-green-100 text-green-800' :
-                                                        p.paperStatus === 'rejected' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'
+                                                    p.paperStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                        'bg-yellow-100 text-yellow-800'
                                                     }`}>
                                                     {p.paperStatus ? (p.paperStatus.charAt(0).toUpperCase() + p.paperStatus.slice(1)) : 'Pending'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handlePaperStatusUpdate(p.id, 'accepted')}
-                                                        className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs transition-colors flex items-center gap-1"
-                                                        title="Accept Paper"
-                                                    >
-                                                        <FileCheck size={14} /> Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePaperStatusUpdate(p.id, 'rejected')}
-                                                        className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md text-xs hover:bg-red-100 transition-colors flex items-center gap-1"
-                                                        title="Reject Paper"
-                                                    >
-                                                        <XCircle size={14} /> Reject
-                                                    </button>
+                                                    {p.paperStatus !== 'accepted' && (
+                                                        <button
+                                                            onClick={() => handlePaperStatusUpdate(p.id, 'accepted')}
+                                                            className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs transition-colors flex items-center gap-1"
+                                                            title="Accept Paper"
+                                                        >
+                                                            <FileCheck size={14} /> Accept
+                                                        </button>
+                                                    )}
+                                                    {p.paperStatus !== 'rejected' && (
+                                                        <button
+                                                            onClick={() => handlePaperStatusUpdate(p.id, 'rejected')}
+                                                            className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md text-xs hover:bg-red-100 transition-colors flex items-center gap-1"
+                                                            title="Reject Paper"
+                                                        >
+                                                            <XCircle size={14} /> Reject
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

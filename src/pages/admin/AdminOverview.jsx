@@ -6,7 +6,8 @@ const AdminOverview = () => {
     const [stats, setStats] = useState({
         totalEvents: 0,
         pendingApprovals: 0,
-        totalParticipants: 0, // This would ideally come from a real stats endpoint
+        totalParticipants: 0,
+        totalRegistrations: 0,
         daysLeft: 0
     });
 
@@ -33,10 +34,14 @@ const AdminOverview = () => {
                     daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
                 }
 
+                // Calculate total registrations
+                const totalRegistrations = allEvents.reduce((acc, event) => acc + (event.registeredCount || 0), 0);
+
                 setStats({
                     totalEvents: allEvents.length,
                     pendingApprovals: pendingEvents + pendingUsers,
                     totalParticipants: allUsers.filter(u => u.role === 'participant').length,
+                    totalRegistrations: totalRegistrations, // Add to stats
                     daysLeft: daysLeft > 0 ? daysLeft : 0
                 });
             } catch (error) {
@@ -85,6 +90,12 @@ const AdminOverview = () => {
                     value={stats.totalParticipants}
                     icon={Users}
                     color="bg-purple-500"
+                />
+                <StatCard
+                    title="Total Registrations"
+                    value={stats.totalRegistrations}
+                    icon={CheckSquare}
+                    color="bg-orange-500"
                 />
             </div>
 
